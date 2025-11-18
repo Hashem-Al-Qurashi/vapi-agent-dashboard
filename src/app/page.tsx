@@ -217,31 +217,31 @@ export default function VapiDashboard() {
             <span className="block text-[9vw] sm:text-5xl md:text-6xl lg:text-7xl">
               A focused home
             </span>
-            <span className="block text-[9vw] sm:text-5xl md:text-6xl lg:text-7xl text-emerald-200 animate-shimmer-mask" style={{'--shine': '240%'}}>
+            <span className="block text-[9vw] sm:text-5xl md:text-6xl lg:text-7xl text-emerald-200 animate-shimmer-mask" style={{'--shine': '240%'} as React.CSSProperties}>
               for every voice conversation
             </span>
           </h1>
 
-          <p className="max-w-2xl mx-auto text-sm sm:text-base md:text-lg text-slate-300/90 type-words is-in" data-stagger=".16s" data-duration="1.8s" data-ease="ease-in-out" data-delay=".3s" style={{'--stagger': '0.16s', '--dur': '1.8s', '--ease': 'ease-in-out', '--delay': '0.3s'}}>
-            <span className="w" style={{'--i': 0}}>Deploy&nbsp;</span>
-            <span className="w" style={{'--i': 1}}>intelligent&nbsp;</span>
-            <span className="w" style={{'--i': 2}}>voice&nbsp;</span>
-            <span className="w" style={{'--i': 3}}>AI&nbsp;</span>
-            <span className="w" style={{'--i': 4}}>agents&nbsp;</span>
-            <span className="w" style={{'--i': 5}}>with&nbsp;</span>
-            <span className="w" style={{'--i': 6}}>custom&nbsp;</span>
-            <span className="w" style={{'--i': 7}}>voices,&nbsp;</span>
-            <span className="w" style={{'--i': 8}}>advanced&nbsp;</span>
-            <span className="w" style={{'--i': 9}}>models,&nbsp;</span>
-            <span className="w" style={{'--i': 10}}>and&nbsp;</span>
-            <span className="w" style={{'--i': 11}}>real-time&nbsp;</span>
-            <span className="w" style={{'--i': 12}}>analytics.&nbsp;</span>
-            <span className="w" style={{'--i': 13}}>Monitor&nbsp;</span>
-            <span className="w" style={{'--i': 14}}>performance&nbsp;</span>
-            <span className="w" style={{'--i': 15}}>and&nbsp;</span>
-            <span className="w" style={{'--i': 16}}>scale&nbsp;</span>
-            <span className="w" style={{'--i': 17}}>conversations&nbsp;</span>
-            <span className="w" style={{'--i': 18}}>effortlessly.&nbsp;</span>
+          <p className="max-w-2xl mx-auto text-sm sm:text-base md:text-lg text-slate-300/90 type-words is-in" data-stagger=".16s" data-duration="1.8s" data-ease="ease-in-out" data-delay=".3s" style={{'--stagger': '0.16s', '--dur': '1.8s', '--ease': 'ease-in-out', '--delay': '0.3s'} as React.CSSProperties}>
+            <span className="w" style={{'--i': 0} as React.CSSProperties}>Deploy&nbsp;</span>
+            <span className="w" style={{'--i': 1} as React.CSSProperties}>intelligent&nbsp;</span>
+            <span className="w" style={{'--i': 2} as React.CSSProperties}>voice&nbsp;</span>
+            <span className="w" style={{'--i': 3} as React.CSSProperties}>AI&nbsp;</span>
+            <span className="w" style={{'--i': 4} as React.CSSProperties}>agents&nbsp;</span>
+            <span className="w" style={{'--i': 5} as React.CSSProperties}>with&nbsp;</span>
+            <span className="w" style={{'--i': 6} as React.CSSProperties}>custom&nbsp;</span>
+            <span className="w" style={{'--i': 7} as React.CSSProperties}>voices,&nbsp;</span>
+            <span className="w" style={{'--i': 8} as React.CSSProperties}>advanced&nbsp;</span>
+            <span className="w" style={{'--i': 9} as React.CSSProperties}>models,&nbsp;</span>
+            <span className="w" style={{'--i': 10} as React.CSSProperties}>and&nbsp;</span>
+            <span className="w" style={{'--i': 11} as React.CSSProperties}>real-time&nbsp;</span>
+            <span className="w" style={{'--i': 12} as React.CSSProperties}>analytics.&nbsp;</span>
+            <span className="w" style={{'--i': 13} as React.CSSProperties}>Monitor&nbsp;</span>
+            <span className="w" style={{'--i': 14} as React.CSSProperties}>performance&nbsp;</span>
+            <span className="w" style={{'--i': 15} as React.CSSProperties}>and&nbsp;</span>
+            <span className="w" style={{'--i': 16} as React.CSSProperties}>scale&nbsp;</span>
+            <span className="w" style={{'--i': 17} as React.CSSProperties}>conversations&nbsp;</span>
+            <span className="w" style={{'--i': 18} as React.CSSProperties}>effortlessly.&nbsp;</span>
           </p>
 
           <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
