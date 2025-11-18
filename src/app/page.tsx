@@ -27,14 +27,14 @@ export default function VapiDashboard() {
 
     loadAgents();
 
-    // Set up real-time subscription
-    const subscription = subscribeToAgents((updatedAgents) => {
-      setAgents(updatedAgents);
-    });
+    // Set up real-time subscription (disabled for production testing)
+    // const subscription = subscribeToAgents((updatedAgents) => {
+    //   setAgents(updatedAgents);
+    // });
 
-    return () => {
-      subscription.unsubscribe();
-    };
+    // return () => {
+    //   subscription.unsubscribe();
+    // };
   }, []);
 
   // Track scroll position for opacity changes
