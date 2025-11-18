@@ -26,9 +26,9 @@ export async function POST(request: NextRequest) {
         voiceId: formData.voice
       },
       firstMessage: formData.first_message,
-      // Skip webhook for now - we'll add it later with ngrok
-      // serverUrl: `https://your-domain.com/api/webhook`,
-      // serverUrlSecret: "vapi_webhook_secret_2024"
+      // Configure webhook for call events
+      serverUrl: `${process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://vapi-agent-dashboard-ocnrs1whw-hashem-al-qurashis-projects.vercel.app'}/api/webhook`,
+      serverUrlSecret: "vapi_webhook_secret_2024"
     };
 
     const vapiResponse = await fetch(`${VAPI_BASE_URL}/assistant`, {
