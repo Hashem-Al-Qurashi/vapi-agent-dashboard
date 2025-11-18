@@ -5,19 +5,47 @@ export type { Agent }
 
 // Agent database operations
 export const agentService = {
-  // Get all agents
+  // Get all agents with comprehensive error handling
   async getAll(): Promise<Agent[]> {
-    const { data, error } = await supabase
-      .from('agents')
-      .select('*')
-      .order('created_at', { ascending: false })
-    
-    if (error) {
-      console.error('Error fetching agents:', error)
-      throw error
+    try {
+      console.log('=== AGENT SERVICE DEBUG ===');
+      console.log('Starting getAll() call...');
+      console.log('Supabase client exists:', !!supabase);
+      
+      console.log('Calling supabase.from("agents").select("*")...');
+      const query = supabase.from('agents').select('*').order('created_at', { ascending: false });
+      console.log('Query object created:', !!query);
+      
+      console.log('Executing query...');
+      const { data, error } = await query;
+      
+      console.log('Query completed');
+      console.log('Data received:', !!data);
+      console.log('Data length:', data?.length);
+      console.log('Error occurred:', !!error);
+      
+      if (error) {
+        console.error('=== SUPABASE QUERY ERROR ===');
+        console.error('Error object:', error);
+        console.error('Error message:', error.message);
+        console.error('Error details:', error.details);
+        console.error('Error hint:', error.hint);
+        console.error('Error code:', error.code);
+        throw error;
+      }
+      
+      console.log('Returning data:', data);
+      return data || [];
+      
+    } catch (error) {
+      console.error('=== AGENT SERVICE ERROR ===');
+      console.error('Caught error in getAll():', error);
+      console.error('Error type:', typeof error);
+      console.error('Error name:', (error as any)?.name);
+      console.error('Error message:', (error as any)?.message);
+      console.error('Error stack:', (error as any)?.stack);
+      throw error;
     }
-    
-    return data || []
   },
 
   // Get agent by ID
