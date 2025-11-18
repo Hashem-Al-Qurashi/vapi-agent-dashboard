@@ -1,5 +1,8 @@
 import { supabase, type Agent } from './supabase'
 
+// Re-export Agent type for use in other components
+export type { Agent }
+
 // Agent database operations
 export const agentService = {
   // Get all agents
