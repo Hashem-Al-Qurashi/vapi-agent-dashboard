@@ -167,7 +167,8 @@ export default function VapiDashboard() {
       alert('✅ Agent created successfully! Check the dashboard.');
     } catch (error) {
       console.error('❌ Error creating agent:', error);
-      alert('❌ Failed to create agent: ' + error.message);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      alert('❌ Failed to create agent: ' + errorMessage);
       throw error; // Let the form handle the error display
     }
   };

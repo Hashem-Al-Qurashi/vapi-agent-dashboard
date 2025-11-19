@@ -93,7 +93,7 @@ export async function POST(request: NextRequest) {
       call_count: 0
     });
 
-    console.log('🔧 API: Agent saved to database:', newAgent.id);
+    console.log('🔧 API: Agent saved to database:', newAgent?.id);
 
     return NextResponse.json({ 
       success: true, 
