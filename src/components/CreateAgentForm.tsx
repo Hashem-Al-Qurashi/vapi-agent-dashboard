@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Bot, Loader2, X, Settings, Mic, Brain } from 'lucide-react';
+import { Bot, Loader2, X, Settings, Mic, Brain, Phone } from 'lucide-react';
 
 interface CreateAgentFormProps {
   isOpen: boolean;
@@ -15,6 +15,16 @@ export interface AgentFormData {
   first_message: string;
   model: string;
   voice: string;
+  // Advanced Vapi configurations
+  maxDurationSeconds?: number;
+  backgroundSound?: string;
+  backchannelingEnabled?: boolean;
+  backgroundDenoisingEnabled?: boolean;
+  modelTemperature?: number;
+  endCallFunctionEnabled?: boolean;
+  endCallPhrases?: string[];
+  interruptionThreshold?: number;
+  responseDelaySeconds?: number;
 }
 
 export default function CreateAgentForm({ isOpen, onClose, onSubmit }: CreateAgentFormProps) {
@@ -23,11 +33,22 @@ export default function CreateAgentForm({ isOpen, onClose, onSubmit }: CreateAge
     system_prompt: '',
     first_message: '',
     model: '',
-    voice: ''
+    voice: '',
+    // Advanced defaults
+    maxDurationSeconds: 1800, // 30 minutes
+    backgroundSound: 'none',
+    backchannelingEnabled: true,
+    backgroundDenoisingEnabled: true,
+    modelTemperature: 0.7,
+    endCallFunctionEnabled: true,
+    endCallPhrases: ['goodbye', 'bye', 'end call', 'hang up'],
+    interruptionThreshold: 100,
+    responseDelaySeconds: 0.5
   });
   
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Partial<AgentFormData>>({});
+  const [showAdvancedSettings, setShowAdvancedSettings] = useState(false);
 
   // Available models and voices from Vapi
   const models = [
@@ -234,6 +255,181 @@ export default function CreateAgentForm({ isOpen, onClose, onSubmit }: CreateAge
                 <p className="mt-1 text-sm text-red-400">{errors.voice}</p>
               )}
             </div>
+          </div>
+
+          {/* Advanced Settings Toggle */}
+          <div className="border-t border-slate-700/50 pt-6">
+            <button
+              type="button"
+              onClick={() => setShowAdvancedSettings(!showAdvancedSettings)}
+              className="flex items-center gap-2 text-sm font-medium text-slate-300 hover:text-emerald-300 transition-colors mb-4"
+            >
+              <Settings className="w-4 h-4" />
+              Advanced Vapi Configuration
+              <span className={`transition-transform duration-200 ${showAdvancedSettings ? 'rotate-180' : ''}`}>
+                ▼
+              </span>
+            </button>
+
+            {/* Advanced Settings Panel */}
+            {showAdvancedSettings && (
+              <div className="space-y-6 p-4 bg-slate-900/40 rounded-xl border border-slate-700/30" style={{animation: 'fadeSlideIn 0.3s ease-out both'}}>
+                
+                {/* Call Behavior */}
+                <div>
+                  <h4 className="text-sm font-medium text-slate-200 mb-3 flex items-center gap-2">
+                    <Phone className="w-4 h-4 text-emerald-300" />
+                    Call Behavior
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-medium text-slate-300 mb-1">
+                        Max Call Duration (seconds)
+                      </label>
+                      <input
+                        type="number"
+                        value={formData.maxDurationSeconds}
+                        onChange={(e) => handleInputChange('maxDurationSeconds', e.target.value)}
+                        className="w-full px-3 py-2 bg-slate-800/60 border border-slate-600/50 rounded-lg text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400/50 transition-all"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-slate-300 mb-1">
+                        Response Delay (seconds)
+                      </label>
+                      <input
+                        type="number"
+                        step="0.1"
+                        value={formData.responseDelaySeconds}
+                        onChange={(e) => handleInputChange('responseDelaySeconds', e.target.value)}
+                        className="w-full px-3 py-2 bg-slate-800/60 border border-slate-600/50 rounded-lg text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400/50 transition-all"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* AI Model Settings */}
+                <div>
+                  <h4 className="text-sm font-medium text-slate-200 mb-3 flex items-center gap-2">
+                    <Brain className="w-4 h-4 text-emerald-300" />
+                    AI Model Settings
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-medium text-slate-300 mb-1">
+                        Model Temperature (0.0 - 2.0)
+                      </label>
+                      <input
+                        type="number"
+                        step="0.1"
+                        min="0"
+                        max="2"
+                        value={formData.modelTemperature}
+                        onChange={(e) => handleInputChange('modelTemperature', e.target.value)}
+                        className="w-full px-3 py-2 bg-slate-800/60 border border-slate-600/50 rounded-lg text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400/50 transition-all"
+                      />
+                      <p className="text-xs text-slate-400 mt-1">Lower = more focused, Higher = more creative</p>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-slate-300 mb-1">
+                        Interruption Threshold (ms)
+                      </label>
+                      <input
+                        type="number"
+                        value={formData.interruptionThreshold}
+                        onChange={(e) => handleInputChange('interruptionThreshold', e.target.value)}
+                        className="w-full px-3 py-2 bg-slate-800/60 border border-slate-600/50 rounded-lg text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400/50 transition-all"
+                      />
+                      <p className="text-xs text-slate-400 mt-1">How quickly agent responds to interruptions</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Audio Settings */}
+                <div>
+                  <h4 className="text-sm font-medium text-slate-200 mb-3 flex items-center gap-2">
+                    <Mic className="w-4 h-4 text-emerald-300" />
+                    Audio Settings
+                  </h4>
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-4">
+                      <label className="flex items-center gap-2 text-sm text-slate-300">
+                        <input
+                          type="checkbox"
+                          checked={formData.backchannelingEnabled}
+                          onChange={(e) => setFormData(prev => ({ ...prev, backchannelingEnabled: e.target.checked }))}
+                          className="w-4 h-4 bg-slate-800 border border-slate-600 rounded focus:ring-2 focus:ring-emerald-400/50 text-emerald-400"
+                        />
+                        Enable Backchanneling (uh-huh, mm-hmm)
+                      </label>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <label className="flex items-center gap-2 text-sm text-slate-300">
+                        <input
+                          type="checkbox"
+                          checked={formData.backgroundDenoisingEnabled}
+                          onChange={(e) => setFormData(prev => ({ ...prev, backgroundDenoisingEnabled: e.target.checked }))}
+                          className="w-4 h-4 bg-slate-800 border border-slate-600 rounded focus:ring-2 focus:ring-emerald-400/50 text-emerald-400"
+                        />
+                        Background Noise Reduction
+                      </label>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <label className="flex items-center gap-2 text-sm text-slate-300">
+                        <input
+                          type="checkbox"
+                          checked={formData.endCallFunctionEnabled}
+                          onChange={(e) => setFormData(prev => ({ ...prev, endCallFunctionEnabled: e.target.checked }))}
+                          className="w-4 h-4 bg-slate-800 border border-slate-600 rounded focus:ring-2 focus:ring-emerald-400/50 text-emerald-400"
+                        />
+                        Smart Call Ending Detection
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                {/* End Call Phrases */}
+                <div>
+                  <label className="block text-sm font-medium text-slate-200 mb-2">
+                    End Call Phrases
+                  </label>
+                  <div className="space-y-2">
+                    <textarea
+                      value={formData.endCallPhrases?.join(', ') || ''}
+                      onChange={(e) => setFormData(prev => ({ 
+                        ...prev, 
+                        endCallPhrases: e.target.value.split(',').map(phrase => phrase.trim()).filter(Boolean)
+                      }))}
+                      placeholder="goodbye, bye, end call, hang up, talk later"
+                      rows={2}
+                      className="w-full px-3 py-2 bg-slate-800/60 border border-slate-600/50 rounded-lg text-slate-100 placeholder:text-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400/50 transition-all resize-none"
+                    />
+                    <p className="text-xs text-slate-400">
+                      Comma-separated phrases that trigger call ending
+                    </p>
+                  </div>
+                </div>
+
+                {/* Background Sound */}
+                <div>
+                  <label className="block text-sm font-medium text-slate-200 mb-2">
+                    Background Sound
+                  </label>
+                  <select
+                    value={formData.backgroundSound}
+                    onChange={(e) => handleInputChange('backgroundSound', e.target.value)}
+                    className="w-full px-3 py-2 bg-slate-800/60 border border-slate-600/50 rounded-lg text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400/50 transition-all"
+                  >
+                    <option value="none">No Background Sound</option>
+                    <option value="office">Office Ambience</option>
+                    <option value="nature">Nature Sounds</option>
+                    <option value="cafe">Cafe Atmosphere</option>
+                    <option value="white_noise">White Noise</option>
+                  </select>
+                </div>
+
+              </div>
+            )}
           </div>
 
           {/* Submit Button */}
