@@ -437,166 +437,105 @@ export default function VapiDashboard() {
             </span>
           </div>
 
-          {/* Search and Filter Section */}
-          <div className="mt-14 w-full max-w-6xl mx-auto mb-8">
-            <SearchAndFilter 
-              agents={agents}
-              onFilteredResults={setFilteredAgents}
-            />
-          </div>
-
-          {/* MAIN SECTION: Voice AI Analytics - BIGGER AND PROMINENT */}
-          <div className="w-full max-w-7xl mx-auto">
+          {/* LINEAR-INSPIRED: Subtle Analytics Section */}
+          <div className="mt-20 w-full max-w-6xl mx-auto mb-16">
             
-            {/* Analytics Header - Beautiful and Prominent */}
-            <div className="relative rounded-3xl border border-emerald-500/30 bg-slate-950/80 backdrop-blur-2xl shadow-[0_40px_120px_rgba(15,118,110,0.45)] overflow-hidden mb-8">
-              <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-emerald-500/20 to-transparent pointer-events-none"></div>
-              <div className="relative p-6 lg:p-8">
-                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-                  <div className="flex items-center gap-4">
-                    <div className="relative">
-                      <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-emerald-400 to-lime-400 flex items-center justify-center">
-                        <div className="absolute inset-[2px] rounded-lg bg-slate-950"></div>
-                        <Bot className="relative w-6 h-6 text-emerald-300" />
-                      </div>
-                      <span className="absolute -bottom-1 -right-1 inline-flex h-4 w-4">
-                        <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400/40 animate-ping"></span>
-                        <span className="relative inline-flex rounded-full h-4 w-4 bg-emerald-400 border-2 border-slate-950"></span>
-                      </span>
-                    </div>
-                    <div>
-                      <h2 className="text-2xl lg:text-3xl font-semibold text-white tracking-tight">
-                        Voice AI Analytics
-                      </h2>
-                      <div className="flex items-center gap-2 text-emerald-200/90 mt-1">
-                        <span className="h-2 w-2 rounded-full bg-emerald-400"></span>
-                        <span className="text-sm">
-                          Live metrics: {(filteredAgents.length > 0 ? filteredAgents : agents).length} agents, {(filteredAgents.length > 0 ? filteredAgents : agents).reduce((sum, agent) => sum + agent.call_count, 0)} total calls
-                        </span>
-                      </div>
-                    </div>
+            {/* Minimal Stats Header - Linear Style */}
+            <div className="mb-8">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h2 className="text-xl font-medium text-white mb-1">Voice AI Analytics</h2>
+                  <p className="text-sm text-slate-400">Monitor your agents and conversations</p>
+                </div>
+                <div className="flex items-center gap-6 text-sm">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-emerald-400"></div>
+                    <span className="text-slate-300">{(filteredAgents.length > 0 ? filteredAgents : agents).length} agents</span>
                   </div>
-
-                  {/* Quick Stats - Prominent Display */}
-                  <div className="flex items-center gap-8">
-                    <div className="text-center">
-                      <div className="text-3xl lg:text-4xl font-bold text-emerald-300">
-                        {(filteredAgents.length > 0 ? filteredAgents : agents).length}
-                      </div>
-                      <div className="text-sm text-slate-400">Active Agents</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-3xl lg:text-4xl font-bold text-emerald-300">
-                        {(filteredAgents.length > 0 ? filteredAgents : agents).reduce((sum, agent) => sum + agent.call_count, 0)}
-                      </div>
-                      <div className="text-sm text-slate-400">Total Calls</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-3xl lg:text-4xl font-bold text-emerald-300">98%</div>
-                      <div className="text-sm text-slate-400">Success Rate</div>
-                    </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-emerald-400"></div>
+                    <span className="text-slate-300">{(filteredAgents.length > 0 ? filteredAgents : agents).reduce((sum, agent) => sum + agent.call_count, 0)} total calls</span>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Agent Cards Grid - FULL WIDTH AND BEAUTIFUL */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {loading ? (
-                <div className="col-span-full flex items-center justify-center py-16">
-                  <div className="inline-flex items-center gap-2 rounded-full bg-emerald-500/10 border border-emerald-400/40 px-4 py-3 text-emerald-100">
-                    <div className="w-4 h-4 border-2 border-emerald-300 border-t-transparent rounded-full animate-spin"></div>
-                    <span>Loading agents...</span>
-                  </div>
-                </div>
-              ) : (
-                (filteredAgents.length > 0 ? filteredAgents : agents).map((agent) => (
-                  <div key={agent.id} className="group relative rounded-3xl border border-emerald-500/20 bg-slate-950/70 backdrop-blur-2xl overflow-hidden transition-all duration-300 hover:border-emerald-400/40 hover:bg-slate-950/80 hover:-translate-y-1 hover:shadow-[0_20px_60px_rgba(16,185,129,0.1)]">
-                    
-                    {/* Beautiful Agent Card */}
-                    <div className="p-6">
-                      <div className="flex items-center gap-3 mb-4">
-                        <div className="h-12 w-12 rounded-xl bg-emerald-500/20 flex items-center justify-center border border-emerald-400/40 group-hover:border-emerald-400/60 transition-colors">
-                          <Bot className="w-6 h-6 text-emerald-300" />
-                        </div>
-                        <div className="flex-1">
-                          <button
-                            onClick={() => handleViewAgent(agent)}
-                            className="font-semibold text-slate-100 group-hover:text-emerald-100 transition-colors text-left hover:underline"
-                          >
-                            {agent.agent_name}
-                          </button>
-                          <p className="text-sm text-slate-400">{agent.model} • {agent.voice}</p>
-                        </div>
-                      </div>
-                      
-                      {/* Call Count - Prominent */}
-                      <div className="text-center py-4 rounded-xl bg-slate-900/60 border border-slate-700/50 mb-4">
-                        <div className="text-2xl font-bold text-emerald-300">{agent.call_count}</div>
-                        <div className="text-xs text-slate-400">Total Calls</div>
-                      </div>
+            {/* Search - Minimal and Elegant */}
+            <div className="mb-8">
+              <SearchAndFilter 
+                agents={agents}
+                onFilteredResults={setFilteredAgents}
+              />
+            </div>
 
-                      {/* Agent Details */}
-                      <div className="space-y-3 mb-4">
-                        <div className="flex justify-between text-sm">
-                          <span className="text-slate-400">Created:</span>
-                          <span className="text-slate-300">{new Date(agent.created_at!).toLocaleDateString()}</span>
-                        </div>
-                        <div className="text-xs text-slate-400 leading-relaxed">
-                          "{agent.system_prompt.substring(0, 80)}..."
-                        </div>
+            {/* Agent Grid - Linear-inspired Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {(filteredAgents.length > 0 ? filteredAgents : agents).map((agent) => (
+                <div key={agent.id} className="group relative rounded-2xl border border-slate-800/50 bg-slate-900/40 backdrop-blur-sm transition-all duration-200 hover:border-emerald-500/30 hover:bg-slate-900/60">
+                  
+                  <div className="p-5">
+                    {/* Agent Header - Minimal */}
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center">
+                        <Bot className="w-4 h-4 text-emerald-400" />
                       </div>
-
-                      {/* PROMINENT Action Buttons */}
-                      <div className="space-y-2">
-                        <button 
-                          onClick={() => handleTestCall(agent)}
-                          disabled={!vapi}
-                          className={`w-full flex items-center justify-center gap-2 py-3 rounded-xl font-medium transition-all border ${
-                            activeCall === agent.vapi_assistant_id
-                              ? 'bg-red-500/20 text-red-300 border-red-400/30 hover:bg-red-500/30'
-                              : 'bg-emerald-500/20 text-emerald-300 border-emerald-400/30 hover:bg-emerald-500/30'
-                          } ${!vapi ? 'opacity-50 cursor-not-allowed' : ''}`}
-                        >
-                          <Phone className="w-4 h-4" />
-                          {activeCall === agent.vapi_assistant_id ? 'End Call' : 'Test Voice Call'}
-                        </button>
-                        
-                        <button 
-                          onClick={() => handleViewAgent(agent)}
-                          className="w-full flex items-center justify-center gap-2 py-2 bg-slate-700/50 text-slate-300 rounded-lg text-sm font-medium hover:bg-slate-600/50 transition-colors border border-slate-600/50"
-                        >
-                          <BarChart3 className="w-4 h-4" />
-                          View Details & Analytics
-                        </button>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-medium text-slate-100 truncate">{agent.agent_name}</h3>
+                        <p className="text-xs text-slate-500">{agent.model}</p>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-lg font-semibold text-emerald-400">{agent.call_count}</div>
+                        <div className="text-xs text-slate-500">calls</div>
                       </div>
                     </div>
-                  </div>
-                ))
-              )}
 
-              {/* Create New Agent Card */}
+                    {/* Minimal Details */}
+                    <div className="space-y-2 mb-4">
+                      <div className="flex justify-between text-xs">
+                        <span className="text-slate-500">Voice:</span>
+                        <span className="text-slate-400">{agent.voice}</span>
+                      </div>
+                      <div className="flex justify-between text-xs">
+                        <span className="text-slate-500">Created:</span>
+                        <span className="text-slate-400">{new Date(agent.created_at!).toLocaleDateString()}</span>
+                      </div>
+                    </div>
+
+                    {/* Clean Action - Single Primary Button */}
+                    <button 
+                      onClick={() => handleTestCall(agent)}
+                      disabled={!vapi}
+                      className={`w-full py-2 px-4 rounded-lg text-sm font-medium transition-all ${
+                        activeCall === agent.vapi_assistant_id
+                          ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30'
+                          : 'bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30'
+                      } ${!vapi ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    >
+                      {activeCall === agent.vapi_assistant_id ? 'End Call' : 'Test Call'}
+                    </button>
+                  </div>
+                </div>
+              ))}
+
+              {/* Minimal Create Card */}
               <div 
                 onClick={() => setShowCreateForm(true)}
-                className="group cursor-pointer rounded-3xl border-2 border-dashed border-emerald-400/40 hover:border-emerald-400/60 bg-slate-950/40 backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 flex flex-col items-center justify-center p-8 min-h-[320px]"
+                className="group cursor-pointer rounded-2xl border border-dashed border-slate-700/50 hover:border-emerald-500/40 bg-slate-900/20 hover:bg-slate-900/40 transition-all duration-200 flex flex-col items-center justify-center p-8 min-h-[200px]"
               >
-                <div className="h-16 w-16 rounded-2xl bg-emerald-500/10 flex items-center justify-center border border-emerald-400/40 group-hover:border-emerald-400/60 transition-all mb-4">
-                  <Plus className="w-8 h-8 text-emerald-300 group-hover:text-emerald-200 transition-colors" />
-                </div>
-                <h3 className="text-lg font-semibold text-slate-200 group-hover:text-emerald-200 transition-colors mb-2">
-                  Create New Agent
-                </h3>
-                <p className="text-sm text-slate-400 text-center max-w-48">
-                  Deploy a new voice AI agent with templates or custom configuration
-                </p>
+                <Plus className="w-6 h-6 text-slate-500 group-hover:text-emerald-400 transition-colors mb-3" />
+                <span className="text-sm text-slate-500 group-hover:text-emerald-400 transition-colors">New Agent</span>
               </div>
             </div>
           </div>
         </section>
-        
-      </main>
 
-      {/* Create Agent Form Modal */}
+        {/* Keep original two-column section below for comparison */}
+        <section className="px-6 pb-20">
+          <div className="w-full max-w-6xl mx-auto grid gap-6 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1.15fr)] items-stretch">
+            {/* Left: Agent showcase */}
+            <div className="relative rounded-3xl border border-emerald-400/20 bg-slate-950/60 backdrop-blur-2xl overflow-hidden">
+              <div className="absolute left-10 top-0 h-40 w-40 rounded-full bg-emerald-500/30 blur-3xl opacity-60"></div>
+              <div className="relative p-6 sm:p-7 flex flex-col h-full">
                 <div className="inline-flex items-center gap-2 rounded-full chat-tag-pill px-3 py-1 border border-emerald-500/40 text-[0.7rem] text-emerald-100">
                   <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-slate-950/60 border border-emerald-400/40">
                     <Bot className="w-2.5 h-2.5" />
