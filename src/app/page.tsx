@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Bot, Plus, Menu, Play, Shield, Clock, Sparkles } from 'lucide-react';
+import { Bot, Plus, Menu, Play, Shield, Clock, Sparkles, Settings, Phone } from 'lucide-react';
 import { agentService, subscribeToAgents, type Agent } from '@/lib/database';
 import { vapiService } from '@/lib/vapi';
 import CreateAgentForm, { type AgentFormData } from '@/components/CreateAgentForm';
