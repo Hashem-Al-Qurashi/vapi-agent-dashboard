@@ -325,9 +325,12 @@ export default function VapiDashboard() {
 
             <nav className="hidden lg:flex items-center gap-7 text-xs sm:text-sm text-slate-300/80">
               <a href="#product" className="hover:text-white transition">Agents</a>
+              <a href="/calls" className="hover:text-white transition flex items-center gap-1">
+                <Phone className="w-3 h-3" />
+                Call History
+              </a>
               <a href="#workspaces" className="hover:text-white transition">Analytics</a>
               <a href="#features" className="hover:text-white transition">Settings</a>
-              <a href="#pricing" className="hover:text-white transition">Billing</a>
             </nav>
 
             <div className="hidden sm:flex items-center gap-3">
@@ -464,12 +467,21 @@ export default function VapiDashboard() {
                 <div className="flex items-center gap-6 text-sm">
                   <div className="flex items-center gap-2">
                     <div className="w-2 h-2 rounded-full bg-emerald-400"></div>
-                    <span className="text-slate-300">{(filteredAgents.length > 0 ? filteredAgents : agents).length} agents</span>
+                    <span className="text-slate-300">{(filteredAgents.length > 0 ? filteredAgents : agents).length} active agents</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="w-2 h-2 rounded-full bg-emerald-400"></div>
                     <span className="text-slate-300">{(filteredAgents.length > 0 ? filteredAgents : agents).reduce((sum, agent) => sum + agent.call_count, 0)} total calls</span>
                   </div>
+                  
+                  {/* Call History Button */}
+                  <a 
+                    href="/calls"
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 hover:bg-emerald-500/30 rounded-lg text-sm font-medium transition-all"
+                  >
+                    <Phone className="w-4 h-4" />
+                    View Call History
+                  </a>
                 </div>
               </div>
             </div>
