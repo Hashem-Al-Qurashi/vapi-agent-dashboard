@@ -8,6 +8,7 @@ import CreateAgentForm, { type AgentFormData } from '@/components/CreateAgentFor
 import VoiceCallTest from '@/components/VoiceCallTest';
 import VisualAgentBuilder from '@/components/VisualAgentBuilder';
 import AgentDetailModal from '@/components/AgentDetailModal';
+import SearchAndFilter from '@/components/SearchAndFilter';
 
 export default function VapiDashboard() {
   const [agents, setAgents] = useState<Agent[]>([]);
@@ -17,6 +18,7 @@ export default function VapiDashboard() {
   const [showVisualBuilder, setShowVisualBuilder] = useState(false);
   const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
   const [showAgentDetail, setShowAgentDetail] = useState(false);
+  const [filteredAgents, setFilteredAgents] = useState<Agent[]>([]);
 
   // Load agents from Supabase
   useEffect(() => {
@@ -330,8 +332,16 @@ export default function VapiDashboard() {
             </span>
           </div>
 
+          {/* Search and Filter Section */}
+          <div className="mt-14 w-full max-w-6xl mx-auto mb-8">
+            <SearchAndFilter 
+              agents={agents}
+              onFilteredResults={setFilteredAgents}
+            />
+          </div>
+
           {/* Agent Grid - EXACT REPLICA but with Vapi agents */}
-          <div id="chat" className="mt-14 w-full max-w-6xl mx-auto grid gap-6 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1.15fr)] items-stretch">
+          <div id="chat" className="w-full max-w-6xl mx-auto grid gap-6 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1.15fr)] items-stretch">
             {/* Left: Agent showcase */}
             <div className="relative rounded-3xl border border-emerald-400/20 bg-slate-950/60 backdrop-blur-2xl overflow-hidden">
               <div className="absolute left-10 top-0 h-40 w-40 rounded-full bg-emerald-500/30 blur-3xl opacity-60"></div>
@@ -352,7 +362,7 @@ export default function VapiDashboard() {
                 </p>
 
                 <div className="mt-5 grid grid-cols-2 gap-3 text-left text-[0.72rem] sm:text-xs">
-                  {agents.slice(0, 3).map((agent, index) => (
+                  {(filteredAgents.length > 0 ? filteredAgents : agents).slice(0, 3).map((agent, index) => (
                     <div key={agent.id} className="rounded-2xl border border-white/5 bg-slate-900/70 p-3">
                       <div className="flex items-center gap-2 mb-1.5 text-slate-100">
                         <Bot className="w-3.5 h-3.5 text-emerald-300" />
@@ -411,7 +421,7 @@ export default function VapiDashboard() {
                       </div>
                       <div className="text-[0.7rem] text-emerald-200/90 flex items-center gap-1">
                         <span className="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
-                        Live metrics: {agents.length} agents, {agents.reduce((sum, agent) => sum + agent.call_count, 0)} total calls
+                        Live metrics: {(filteredAgents.length > 0 ? filteredAgents : agents).length} agents, {(filteredAgents.length > 0 ? filteredAgents : agents).reduce((sum, agent) => sum + agent.call_count, 0)} total calls
                       </div>
                     </div>
                   </div>
@@ -429,7 +439,7 @@ export default function VapiDashboard() {
                       </div>
                     </div>
                   ) : (
-                    agents.slice(0, 4).map((agent) => (
+                    (filteredAgents.length > 0 ? filteredAgents : agents).slice(0, 4).map((agent) => (
                       <div key={agent.id} className="flex items-start gap-2 sm:gap-3 text-[0.72rem] sm:text-xs text-slate-300/90">
                         <div className="mt-1 flex h-6 w-6 items-center justify-center rounded-full bg-slate-900 border border-emerald-400/30">
                           <Bot className="w-3.5 h-3.5 text-emerald-300" />
