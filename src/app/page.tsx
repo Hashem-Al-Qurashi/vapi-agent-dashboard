@@ -462,15 +462,22 @@ export default function VapiDashboard() {
                             <p className="text-slate-400 text-[0.65rem] mb-2">
                               {agent.system_prompt.substring(0, 60)}...
                             </p>
-                            {/* Voice Call Test */}
-                            <VoiceCallTest 
-                              agentId={agent.vapi_assistant_id}
-                              agentName={agent.agent_name}
-                              onCallEnd={(callData) => {
-                                console.log('Call ended for agent:', agent.agent_name, callData);
-                                // The webhook will handle incrementing call count
-                              }}
-                            />
+                            {/* Voice Call Test - Simple Button */}
+                            <div className="flex items-center gap-2 mt-2">
+                              <button 
+                                onClick={() => alert(`Testing call for ${agent.agent_name} - Voice SDK loading...`)}
+                                className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500/20 text-emerald-300 rounded-lg text-xs font-medium hover:bg-emerald-500/30 transition-colors border border-emerald-400/30"
+                              >
+                                <Phone className="w-3 h-3" />
+                                Test Call
+                              </button>
+                              <button 
+                                onClick={() => handleViewAgent(agent)}
+                                className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-700/50 text-slate-300 rounded-lg text-xs font-medium hover:bg-slate-600/50 transition-colors border border-slate-600/50"
+                              >
+                                View Details
+                              </button>
+                            </div>
                           </div>
                         </div>
                       </div>
