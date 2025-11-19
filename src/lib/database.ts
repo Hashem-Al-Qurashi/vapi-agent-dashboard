@@ -143,17 +143,54 @@ export const agentService = {
 
   // Delete agent
   async delete(id: number): Promise<boolean> {
-    const { error } = await supabase
-      .from('agents')
-      .delete()
-      .eq('id', id)
-    
-    if (error) {
-      console.error('Error deleting agent:', error)
-      return false
+    try {
+      // First, get the agent to find the Vapi assistant ID
+      const { data: agent, error: fetchError } = await supabase
+        .from('agents')
+        .select('vapi_assistant_id')
+        .eq('id', id)
+        .single();
+
+      if (fetchError || !agent) {
+        console.error('Error fetching agent for deletion:', fetchError);
+        return false;
+      }
+
+      // Delete from Vapi first
+      try {
+        const vapiResponse = await fetch(`https://api.vapi.ai/assistant/${agent.vapi_assistant_id}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${process.env.VAPI_PRIVATE_KEY}`,
+          },
+        });
+
+        if (!vapiResponse.ok) {
+          console.warn('Failed to delete from Vapi (continuing with database deletion):', await vapiResponse.text());
+        } else {
+          console.log('✅ Agent deleted from Vapi successfully');
+        }
+      } catch (vapiError) {
+        console.warn('Vapi deletion failed (continuing with database deletion):', vapiError);
+      }
+
+      // Delete from our database
+      const { error } = await supabase
+        .from('agents')
+        .delete()
+        .eq('id', id);
+      
+      if (error) {
+        console.error('Error deleting agent from database:', error);
+        return false;
+      }
+      
+      console.log('✅ Agent deleted from database successfully');
+      return true;
+    } catch (error) {
+      console.error('Error in delete operation:', error);
+      return false;
     }
-    
-    return true
   },
 
   // Search agents

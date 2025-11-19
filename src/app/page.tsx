@@ -525,18 +525,42 @@ export default function VapiDashboard() {
                       </div>
                     </div>
 
-                    {/* Clean Action - Single Primary Button */}
-                    <button 
-                      onClick={() => handleTestCall(agent)}
-                      disabled={!vapi}
-                      className={`w-full py-2 px-4 rounded-lg text-sm font-medium transition-all ${
-                        activeCall === agent.vapi_assistant_id
-                          ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30'
-                          : 'bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30'
-                      } ${!vapi ? 'opacity-50 cursor-not-allowed' : ''}`}
-                    >
-                      {activeCall === agent.vapi_assistant_id ? 'End Call' : 'Test Call'}
-                    </button>
+                    {/* Action Buttons */}
+                    <div className="space-y-2">
+                      <button 
+                        onClick={() => handleTestCall(agent)}
+                        disabled={!vapi}
+                        className={`w-full py-2 px-4 rounded-lg text-sm font-medium transition-all ${
+                          activeCall === agent.vapi_assistant_id
+                            ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30'
+                            : 'bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30'
+                        } ${!vapi ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      >
+                        {activeCall === agent.vapi_assistant_id ? 'End Call' : 'Test Call'}
+                      </button>
+                      
+                      <div className="flex gap-2">
+                        <button 
+                          onClick={() => handleViewAgent(agent)}
+                          className="flex-1 py-1.5 px-3 bg-slate-700/50 text-slate-300 rounded-md text-xs font-medium hover:bg-slate-600/50 transition-colors"
+                        >
+                          Details
+                        </button>
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (confirm(`Delete agent "${agent.agent_name}"? This cannot be undone.`)) {
+                              if (agent.id) {
+                                handleDeleteAgent(agent.id);
+                              }
+                            }
+                          }}
+                          className="flex-1 py-1.5 px-3 bg-red-500/20 text-red-400 hover:bg-red-500/30 rounded-md text-xs font-medium transition-colors"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
               ))}
