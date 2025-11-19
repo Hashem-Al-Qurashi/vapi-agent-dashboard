@@ -19,6 +19,8 @@ export default function VapiDashboard() {
   const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
   const [showAgentDetail, setShowAgentDetail] = useState(false);
   const [filteredAgents, setFilteredAgents] = useState<Agent[]>([]);
+  const [vapi, setVapi] = useState<any>(null);
+  const [activeCall, setActiveCall] = useState<string | null>(null);
 
   // Load agents from Supabase
   useEffect(() => {
@@ -53,6 +55,48 @@ export default function VapiDashboard() {
 
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Load Vapi Web SDK for voice calls
+  useEffect(() => {
+    const loadVapiSDK = () => {
+      const script = document.createElement('script');
+      script.src = 'https://cdn.jsdelivr.net/npm/@vapi-ai/web@latest/dist/index.js';
+      script.onload = () => {
+        if ((window as any).Vapi) {
+          const vapiInstance = new (window as any).Vapi(process.env.NEXT_PUBLIC_VAPI_PUBLIC_KEY);
+          
+          // Set up event listeners
+          vapiInstance.on('call-start', () => {
+            console.log('Call started');
+          });
+
+          vapiInstance.on('call-end', (callData: any) => {
+            console.log('Call ended', callData);
+            setActiveCall(null);
+            // The webhook will handle incrementing call count
+          });
+
+          vapiInstance.on('error', (error: any) => {
+            console.error('Vapi error:', error);
+            setActiveCall(null);
+            alert('Call failed: ' + error.message);
+          });
+
+          setVapi(vapiInstance);
+          console.log('Vapi SDK loaded successfully');
+        }
+      };
+      script.onerror = () => {
+        console.error('Failed to load Vapi SDK');
+        alert('Failed to load Vapi SDK');
+      };
+      document.head.appendChild(script);
+    };
+
+    if (!(window as any).Vapi) {
+      loadVapiSDK();
+    }
   }, []);
 
   // Handle agent creation via API route
@@ -104,6 +148,39 @@ export default function VapiDashboard() {
     } catch (error) {
       console.error('Error deleting agent:', error);
       alert('Failed to delete agent');
+    }
+  };
+
+  // Handle voice call testing
+  const handleTestCall = async (agent: Agent) => {
+    if (!vapi) {
+      alert('Vapi SDK not loaded yet. Please try again in a moment.');
+      return;
+    }
+
+    if (activeCall) {
+      // End current call
+      vapi.stop();
+      setActiveCall(null);
+      return;
+    }
+
+    try {
+      setActiveCall(agent.vapi_assistant_id);
+      console.log(`Starting call with agent: ${agent.agent_name}`);
+      
+      await vapi.start({
+        assistantId: agent.vapi_assistant_id,
+        transcriber: {
+          provider: 'deepgram',
+          model: 'nova-2'
+        }
+      });
+      
+    } catch (error) {
+      console.error('Failed to start call:', error);
+      setActiveCall(null);
+      alert('Failed to start call: ' + (error as any).message);
     }
   };
 
@@ -462,14 +539,19 @@ export default function VapiDashboard() {
                             <p className="text-slate-400 text-[0.65rem] mb-2">
                               {agent.system_prompt.substring(0, 60)}...
                             </p>
-                            {/* Voice Call Test - Simple Button */}
+                            {/* Voice Call Test - Real Implementation */}
                             <div className="flex items-center gap-2 mt-2">
                               <button 
-                                onClick={() => alert(`Testing call for ${agent.agent_name} - Voice SDK loading...`)}
-                                className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500/20 text-emerald-300 rounded-lg text-xs font-medium hover:bg-emerald-500/30 transition-colors border border-emerald-400/30"
+                                onClick={() => handleTestCall(agent)}
+                                disabled={!vapi}
+                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border ${
+                                  activeCall === agent.vapi_assistant_id
+                                    ? 'bg-red-500/20 text-red-300 border-red-400/30 hover:bg-red-500/30'
+                                    : 'bg-emerald-500/20 text-emerald-300 border-emerald-400/30 hover:bg-emerald-500/30'
+                                } ${!vapi ? 'opacity-50 cursor-not-allowed' : ''}`}
                               >
                                 <Phone className="w-3 h-3" />
-                                Test Call
+                                {activeCall === agent.vapi_assistant_id ? 'End Call' : 'Test Call'}
                               </button>
                               <button 
                                 onClick={() => handleViewAgent(agent)}
