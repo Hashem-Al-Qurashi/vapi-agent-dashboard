@@ -7,6 +7,7 @@ import { vapiService } from '@/lib/vapi';
 import CreateAgentForm, { type AgentFormData } from '@/components/CreateAgentForm';
 import VoiceCallTest from '@/components/VoiceCallTest';
 import VisualAgentBuilder from '@/components/VisualAgentBuilder';
+import AgentDetailModal from '@/components/AgentDetailModal';
 
 export default function VapiDashboard() {
   const [agents, setAgents] = useState<Agent[]>([]);
@@ -14,6 +15,8 @@ export default function VapiDashboard() {
   const [scrollY, setScrollY] = useState(0);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [showVisualBuilder, setShowVisualBuilder] = useState(false);
+  const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
+  const [showAgentDetail, setShowAgentDetail] = useState(false);
 
   // Load agents from Supabase
   useEffect(() => {
@@ -73,6 +76,32 @@ export default function VapiDashboard() {
     } catch (error) {
       console.error('Error creating agent:', error);
       throw error; // Let the form handle the error display
+    }
+  };
+
+  // Handle agent detail view
+  const handleViewAgent = (agent: Agent) => {
+    setSelectedAgent(agent);
+    setShowAgentDetail(true);
+  };
+
+  const handleEditAgent = (agent: Agent) => {
+    // For now, just close the detail modal and open the form
+    // In a full implementation, this would pre-populate the form
+    setShowAgentDetail(false);
+    setShowCreateForm(true);
+    console.log('Edit agent:', agent);
+  };
+
+  const handleDeleteAgent = async (agentId: number) => {
+    try {
+      await agentService.delete(agentId);
+      // Refresh agents list
+      const updatedAgents = await agentService.getAll();
+      setAgents(updatedAgents);
+    } catch (error) {
+      console.error('Error deleting agent:', error);
+      alert('Failed to delete agent');
     }
   };
 
@@ -406,11 +435,14 @@ export default function VapiDashboard() {
                           <Bot className="w-3.5 h-3.5 text-emerald-300" />
                         </div>
                         <div className="max-w-[90%]">
-                          <div className="inline-flex items-center gap-2 rounded-full bg-emerald-500/10 border border-emerald-400/40 px-2 py-1 mb-1 text-[0.65rem] text-emerald-100">
+                          <button 
+                            onClick={() => handleViewAgent(agent)}
+                            className="inline-flex items-center gap-2 rounded-full bg-emerald-500/10 border border-emerald-400/40 px-2 py-1 mb-1 text-[0.65rem] text-emerald-100 hover:bg-emerald-500/20 transition-colors cursor-pointer"
+                          >
                             <span>{agent.agent_name}</span>
                             <span className="h-1 w-1 rounded-full bg-emerald-300/60"></span>
                             <span>{agent.model}</span>
-                          </div>
+                          </button>
                           <div className="rounded-2xl bg-slate-900/80 border border-slate-800/80 px-3 py-2.5">
                             <p className="mb-2">
                               <span className="text-emerald-200 font-medium">{agent.call_count} calls</span> • 
@@ -453,6 +485,15 @@ export default function VapiDashboard() {
         isOpen={showVisualBuilder}
         onClose={() => setShowVisualBuilder(false)}
         onSave={handleCreateAgent}
+      />
+
+      {/* Agent Detail Modal */}
+      <AgentDetailModal 
+        agent={selectedAgent}
+        isOpen={showAgentDetail}
+        onClose={() => setShowAgentDetail(false)}
+        onEdit={handleEditAgent}
+        onDelete={handleDeleteAgent}
       />
     </div>
   );
