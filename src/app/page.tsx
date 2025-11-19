@@ -148,7 +148,14 @@ export default function VapiDashboard() {
 
       console.log('Agent created successfully:', result);
       
-      // Real-time subscription will automatically update the dashboard
+      // Manually refresh the agents list since real-time is disabled
+      const updatedAgents = await agentService.getAll();
+      setAgents(updatedAgents);
+      
+      // Close the create form
+      setShowCreateForm(false);
+      
+      alert('✅ Agent created successfully!');
     } catch (error) {
       console.error('Error creating agent:', error);
       throw error; // Let the form handle the error display
