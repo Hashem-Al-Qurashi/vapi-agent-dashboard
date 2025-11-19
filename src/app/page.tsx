@@ -131,7 +131,10 @@ export default function VapiDashboard() {
 
   // Handle agent creation via API route
   const handleCreateAgent = async (formData: AgentFormData) => {
+    console.log('🚀 Starting agent creation:', formData);
+    
     try {
+      console.log('📡 Making API call to /api/agents...');
       const response = await fetch('/api/agents', {
         method: 'POST',
         headers: {
@@ -140,24 +143,31 @@ export default function VapiDashboard() {
         body: JSON.stringify(formData),
       });
 
+      console.log('📡 API Response status:', response.status);
       const result = await response.json();
+      console.log('📡 API Response data:', result);
 
       if (!response.ok) {
+        console.error('❌ API Error:', result);
         throw new Error(result.error || 'Failed to create agent');
       }
 
-      console.log('Agent created successfully:', result);
+      console.log('✅ Agent created successfully in API:', result);
       
       // Manually refresh the agents list since real-time is disabled
+      console.log('🔄 Refreshing agents list...');
       const updatedAgents = await agentService.getAll();
+      console.log('🔄 Updated agents from database:', updatedAgents.length, 'agents');
       setAgents(updatedAgents);
       
       // Close the create form
       setShowCreateForm(false);
       
-      alert('✅ Agent created successfully!');
+      console.log('✅ All done! Agent should be visible now');
+      alert('✅ Agent created successfully! Check the dashboard.');
     } catch (error) {
-      console.error('Error creating agent:', error);
+      console.error('❌ Error creating agent:', error);
+      alert('❌ Failed to create agent: ' + error.message);
       throw error; // Let the form handle the error display
     }
   };

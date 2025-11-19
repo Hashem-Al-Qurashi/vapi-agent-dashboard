@@ -5,8 +5,10 @@ const VAPI_BASE_URL = process.env.VAPI_BASE_URL || 'https://api.vapi.ai';
 const VAPI_PRIVATE_KEY = process.env.VAPI_PRIVATE_KEY!;
 
 export async function POST(request: NextRequest) {
+  console.log('🔧 API: Agent creation request received');
   try {
     const formData = await request.json();
+    console.log('🔧 API: Form data received:', formData);
     
     // 1. Create Vapi assistant with advanced configuration
     const vapiPayload = {
@@ -55,6 +57,7 @@ export async function POST(request: NextRequest) {
       serverUrlSecret: "vapi_webhook_secret_2024"
     };
 
+    console.log('🔧 API: Sending request to Vapi:', vapiPayload);
     const vapiResponse = await fetch(`${VAPI_BASE_URL}/assistant`, {
       method: 'POST',
       headers: {
@@ -64,9 +67,11 @@ export async function POST(request: NextRequest) {
       body: JSON.stringify(vapiPayload),
     });
 
+    console.log('🔧 API: Vapi response status:', vapiResponse.status);
+    
     if (!vapiResponse.ok) {
       const error = await vapiResponse.text();
-      console.error('Vapi API Error:', error);
+      console.error('🔧 API: Vapi API Error:', error);
       return NextResponse.json(
         { error: `Failed to create Vapi assistant: ${error}` },
         { status: vapiResponse.status }
@@ -74,8 +79,10 @@ export async function POST(request: NextRequest) {
     }
 
     const vapiAssistant = await vapiResponse.json();
+    console.log('🔧 API: Vapi assistant created:', vapiAssistant.id);
     
     // 2. Save to Supabase with Vapi assistant ID
+    console.log('🔧 API: Saving to Supabase...');
     const newAgent = await agentService.create({
       agent_name: formData.agent_name,
       vapi_assistant_id: vapiAssistant.id,
@@ -85,6 +92,8 @@ export async function POST(request: NextRequest) {
       voice: formData.voice,
       call_count: 0
     });
+
+    console.log('🔧 API: Agent saved to database:', newAgent.id);
 
     return NextResponse.json({ 
       success: true, 
