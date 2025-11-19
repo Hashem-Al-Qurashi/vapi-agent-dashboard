@@ -57,82 +57,80 @@ export default function VapiDashboard() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Load Vapi Web SDK for voice calls - Using multiple CDN fallbacks
+  // Load real Vapi SDK with proper import
   useEffect(() => {
-    const loadVapiSDK = async () => {
-      // Try multiple CDN sources
-      const cdnSources = [
-        'https://unpkg.com/@vapi-ai/web@latest/dist/index.js',
-        'https://cdn.skypack.dev/@vapi-ai/web@latest',
-        'https://esm.sh/@vapi-ai/web@latest'
-      ];
-
-      for (const src of cdnSources) {
-        try {
-          console.log(`Attempting to load Vapi SDK from: ${src}`);
-          
-          const script = document.createElement('script');
-          script.src = src;
-          script.type = 'text/javascript';
-          script.crossOrigin = 'anonymous';
-          
-          await new Promise((resolve, reject) => {
-            script.onload = () => {
-              if ((window as any).Vapi) {
-                console.log('Vapi SDK loaded successfully from:', src);
-                
-                const vapiInstance = new (window as any).Vapi(process.env.NEXT_PUBLIC_VAPI_PUBLIC_KEY);
-                
-                // Set up event listeners
-                vapiInstance.on('call-start', () => {
-                  console.log('Call started');
-                });
-
-                vapiInstance.on('call-end', (callData: any) => {
-                  console.log('Call ended', callData);
-                  setActiveCall(null);
-                });
-
-                vapiInstance.on('error', (error: any) => {
-                  console.error('Vapi error:', error);
-                  setActiveCall(null);
-                  alert('Call failed: ' + error.message);
-                });
-
-                setVapi(vapiInstance);
-                resolve(true);
-              } else {
-                reject(new Error('Vapi not found on window'));
-              }
-            };
-            script.onerror = () => reject(new Error(`Failed to load from ${src}`));
-          });
-          
-          document.head.appendChild(script);
-          break; // Success, stop trying other sources
-          
-        } catch (error) {
-          console.log(`Failed to load from ${src}:`, error);
-          continue; // Try next source
+    console.log('=== VAPI SDK INITIALIZATION ===');
+    
+    const loadRealVapi = async () => {
+      try {
+        // Use dynamic import instead of CDN
+        console.log('Loading Vapi SDK via dynamic import...');
+        const VapiModule = await import('@vapi-ai/web');
+        console.log('✅ Vapi module imported:', Object.keys(VapiModule));
+        
+        // Try different export patterns
+        const Vapi = VapiModule.Vapi || VapiModule.default || (VapiModule as any);
+        console.log('✅ Vapi constructor type:', typeof Vapi);
+        
+        if (typeof Vapi !== 'function') {
+          throw new Error('Vapi constructor not found in module exports');
         }
+        
+        const vapiInstance = new Vapi('bd62d6e3-2281-4307-bb87-a3c59ddb52ce');
+        console.log('✅ Vapi instance created with public key');
+        
+        // Set up event listeners
+        vapiInstance.on('call-start', () => {
+          console.log('🎯 REAL CALL STARTED');
+        });
+
+        vapiInstance.on('call-end', (callData: any) => {
+          console.log('🎯 REAL CALL ENDED:', callData);
+          setActiveCall(null);
+          alert('✅ Call completed! Webhook should fire automatically.');
+        });
+
+        vapiInstance.on('error', async (error: any) => {
+          console.error('🎯 VAPI ERROR:', error);
+          
+          // Get detailed error info
+          if (error.error && error.error.text) {
+            const errorText = await error.error.text();
+            console.error('🎯 VAPI ERROR DETAILS:', errorText);
+            alert('Call failed: ' + errorText);
+          } else {
+            console.error('🎯 VAPI ERROR OBJECT:', JSON.stringify(error, null, 2));
+            alert('Call failed: ' + (error.message || 'Unknown error'));
+          }
+          
+          setActiveCall(null);
+        });
+
+        setVapi(vapiInstance);
+        console.log('✅ Real Vapi SDK ready for voice calls');
+        
+      } catch (error) {
+        console.error('❌ Failed to load real Vapi SDK:', error);
+        console.log('🔄 Falling back to mock SDK...');
+        
+        // Fallback mock
+        const mockVapi = {
+          start: async (config: any) => {
+            console.log('🎯 MOCK CALL (Real SDK failed):', config);
+            alert(`📞 Mock Voice Call\n\nAgent: ${config.assistantId}\n\nReal SDK couldn't load, but this demonstrates the functionality.\n\nIn production, you'd have a real voice conversation!`);
+            setActiveCall(null);
+            return Promise.resolve();
+          },
+          stop: () => setActiveCall(null),
+          on: () => {}
+        };
+        
+        setVapi(mockVapi);
+        console.log('✅ Mock SDK ready');
       }
     };
 
-    if (!(window as any).Vapi) {
-      loadVapiSDK().catch(() => {
-        console.error('All CDN sources failed');
-        // Fallback: Create a mock test function
-        setVapi({
-          start: () => {
-            alert('Voice SDK not available. This would start a real voice conversation with the agent.');
-            return Promise.resolve();
-          },
-          stop: () => {
-            setActiveCall(null);
-          }
-        });
-      });
-    }
+    loadRealVapi();
   }, []);
 
   // Handle agent creation via API route
@@ -205,13 +203,7 @@ export default function VapiDashboard() {
       setActiveCall(agent.vapi_assistant_id);
       console.log(`Starting call with agent: ${agent.agent_name}`);
       
-      await vapi.start({
-        assistantId: agent.vapi_assistant_id,
-        transcriber: {
-          provider: 'deepgram',
-          model: 'nova-2'
-        }
-      });
+      await vapi.start(agent.vapi_assistant_id);
       
     } catch (error) {
       console.error('Failed to start call:', error);
