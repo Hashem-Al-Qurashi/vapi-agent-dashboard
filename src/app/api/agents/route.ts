@@ -29,28 +29,13 @@ export async function POST(request: NextRequest) {
         voiceId: formData.voice
       },
       firstMessage: formData.first_message,
-      // Advanced Vapi configurations
+      // Valid Vapi configurations only
       ...(formData.maxDurationSeconds && { maxDurationSeconds: formData.maxDurationSeconds }),
       ...(formData.backgroundSound && formData.backgroundSound !== 'none' && { 
         backgroundSound: formData.backgroundSound 
       }),
-      ...(formData.backchannelingEnabled !== undefined && { 
-        backchannelingEnabled: formData.backchannelingEnabled 
-      }),
-      ...(formData.backgroundDenoisingEnabled !== undefined && { 
-        backgroundDenoisingEnabled: formData.backgroundDenoisingEnabled 
-      }),
-      ...(formData.endCallFunctionEnabled !== undefined && { 
-        endCallFunctionEnabled: formData.endCallFunctionEnabled 
-      }),
       ...(formData.endCallPhrases && formData.endCallPhrases.length > 0 && { 
         endCallPhrases: formData.endCallPhrases 
-      }),
-      ...(formData.interruptionThreshold && { 
-        interruptionThreshold: formData.interruptionThreshold 
-      }),
-      ...(formData.responseDelaySeconds && { 
-        responseDelaySeconds: formData.responseDelaySeconds 
       }),
       // Configure webhook for call events
       serverUrl: `${process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://vapi-agent-dashboard-4kwlolir1-hashem-al-qurashis-projects.vercel.app'}/api/webhook`,
