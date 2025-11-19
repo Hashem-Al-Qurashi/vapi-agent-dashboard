@@ -178,9 +178,22 @@ export default function VapiDashboard() {
             </nav>
 
             <div className="hidden sm:flex items-center gap-3">
-              <a href="#signin" className="text-xs sm:text-sm text-slate-300 hover:text-white transition">
-                Dashboard
-              </a>
+              <button
+                onClick={async () => {
+                  try {
+                    const response = await fetch('/api/update-webhooks', { method: 'POST' });
+                    const result = await response.json();
+                    console.log('Webhook update result:', result);
+                    alert(`Updated webhooks for ${result.successCount}/${result.totalAgents} agents`);
+                  } catch (error) {
+                    console.error('Error updating webhooks:', error);
+                    alert('Failed to update webhooks');
+                  }
+                }}
+                className="text-xs sm:text-sm text-slate-300 hover:text-white transition"
+              >
+                Update Webhooks
+              </button>
               <button 
                 onClick={() => setShowCreateForm(true)}
                 className="relative inline-flex items-center justify-center gap-2 overflow-hidden transition-all duration-300 hover:ring-emerald-400/70 hover:shadow-[0_0_0_1px_rgba(52,211,153,0.4),0_30px_80px_rgba(16,185,129,0.3)] group ring-emerald-500/40 ring-1 text-xs sm:text-sm font-medium text-slate-950 tracking-tight bg-emerald-400 rounded-full py-2.5 px-4 chat-pulse"
