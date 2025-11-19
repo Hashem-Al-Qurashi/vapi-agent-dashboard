@@ -325,12 +325,10 @@ export default function VapiDashboard() {
 
             <nav className="hidden lg:flex items-center gap-7 text-xs sm:text-sm text-slate-300/80">
               <a href="#product" className="hover:text-white transition">Agents</a>
-              <a href="/calls" className="hover:text-white transition flex items-center gap-1">
-                <Phone className="w-3 h-3" />
-                Call History
-              </a>
+              <a href="/calls" className="hover:text-white transition">Call History</a>
               <a href="#workspaces" className="hover:text-white transition">Analytics</a>
               <a href="#features" className="hover:text-white transition">Settings</a>
+              <a href="#pricing" className="hover:text-white transition">Billing</a>
             </nav>
 
             <div className="hidden sm:flex items-center gap-3">
