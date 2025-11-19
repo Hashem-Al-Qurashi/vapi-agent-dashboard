@@ -5,6 +5,7 @@ import { Bot, Plus, Menu, Play, Shield, Clock, Sparkles } from 'lucide-react';
 import { agentService, subscribeToAgents, type Agent } from '@/lib/database';
 import { vapiService } from '@/lib/vapi';
 import CreateAgentForm, { type AgentFormData } from '@/components/CreateAgentForm';
+import VoiceCallTest from '@/components/VoiceCallTest';
 
 export default function VapiDashboard() {
   const [agents, setAgents] = useState<Agent[]>([]);
@@ -406,14 +407,23 @@ export default function VapiDashboard() {
                             <span>{agent.model}</span>
                           </div>
                           <div className="rounded-2xl bg-slate-900/80 border border-slate-800/80 px-3 py-2.5">
-                            <p className="mb-1">
+                            <p className="mb-2">
                               <span className="text-emerald-200 font-medium">{agent.call_count} calls</span> • 
                               Voice: {agent.voice} • 
                               Created: {new Date(agent.created_at!).toLocaleDateString()}
                             </p>
-                            <p className="text-slate-400 text-[0.65rem]">
+                            <p className="text-slate-400 text-[0.65rem] mb-2">
                               {agent.system_prompt.substring(0, 60)}...
                             </p>
+                            {/* Voice Call Test */}
+                            <VoiceCallTest 
+                              agentId={agent.vapi_assistant_id}
+                              agentName={agent.agent_name}
+                              onCallEnd={(callData) => {
+                                console.log('Call ended for agent:', agent.agent_name, callData);
+                                // The webhook will handle incrementing call count
+                              }}
+                            />
                           </div>
                         </div>
                       </div>
