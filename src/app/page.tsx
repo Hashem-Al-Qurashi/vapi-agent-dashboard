@@ -6,12 +6,14 @@ import { agentService, subscribeToAgents, type Agent } from '@/lib/database';
 import { vapiService } from '@/lib/vapi';
 import CreateAgentForm, { type AgentFormData } from '@/components/CreateAgentForm';
 import VoiceCallTest from '@/components/VoiceCallTest';
+import VisualAgentBuilder from '@/components/VisualAgentBuilder';
 
 export default function VapiDashboard() {
   const [agents, setAgents] = useState<Agent[]>([]);
   const [loading, setLoading] = useState(true);
   const [scrollY, setScrollY] = useState(0);
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [showVisualBuilder, setShowVisualBuilder] = useState(false);
 
   // Load agents from Supabase
   useEffect(() => {
@@ -271,10 +273,13 @@ export default function VapiDashboard() {
               </span>
               <span aria-hidden="true" className="pointer-events-none absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300" style={{background: 'radial-gradient(circle at 0% 0%, rgba(250,250,250,0.4), transparent 55%)'}}></span>
             </button>
-            <button className="group inline-flex min-w-[140px] cursor-pointer transition-all duration-300 hover:-translate-y-0.5 hover:scale-[1.02] border-gradient hover:text-white text-xs sm:text-sm font-medium text-slate-200/90 tracking-tight bg-white/5 rounded-full py-2.5 px-4 relative backdrop-blur-xl items-center justify-center">
+            <button 
+              onClick={() => setShowVisualBuilder(true)}
+              className="group inline-flex min-w-[140px] cursor-pointer transition-all duration-300 hover:-translate-y-0.5 hover:scale-[1.02] border-gradient hover:text-white text-xs sm:text-sm font-medium text-slate-200/90 tracking-tight bg-white/5 rounded-full py-2.5 px-4 relative backdrop-blur-xl items-center justify-center"
+            >
               <span className="relative flex items-center gap-2">
-                <Play className="w-4 h-4 text-emerald-300" />
-                Watch demo
+                <Settings className="w-4 h-4 text-emerald-300" />
+                Visual Builder
               </span>
               <span aria-hidden="true" className="transition-all duration-300 group-hover:opacity-80 opacity-20 w-[70%] h-[1px] rounded-full absolute bottom-0 left-1/2 -translate-x-1/2" style={{background: 'linear-gradient(90deg,rgba(226,232,240,0) 0%,rgba(226,232,240,1) 50%,rgba(226,232,240,0) 100%)'}}></span>
             </button>
@@ -441,6 +446,13 @@ export default function VapiDashboard() {
         isOpen={showCreateForm}
         onClose={() => setShowCreateForm(false)}
         onSubmit={handleCreateAgent}
+      />
+
+      {/* Visual Agent Builder */}
+      <VisualAgentBuilder 
+        isOpen={showVisualBuilder}
+        onClose={() => setShowVisualBuilder(false)}
+        onSave={handleCreateAgent}
       />
     </div>
   );
