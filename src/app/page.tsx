@@ -57,45 +57,81 @@ export default function VapiDashboard() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Load Vapi Web SDK for voice calls
+  // Load Vapi Web SDK for voice calls - Using multiple CDN fallbacks
   useEffect(() => {
-    const loadVapiSDK = () => {
-      const script = document.createElement('script');
-      script.src = 'https://cdn.jsdelivr.net/npm/@vapi-ai/web@latest/dist/index.js';
-      script.onload = () => {
-        if ((window as any).Vapi) {
-          const vapiInstance = new (window as any).Vapi(process.env.NEXT_PUBLIC_VAPI_PUBLIC_KEY);
+    const loadVapiSDK = async () => {
+      // Try multiple CDN sources
+      const cdnSources = [
+        'https://unpkg.com/@vapi-ai/web@latest/dist/index.js',
+        'https://cdn.skypack.dev/@vapi-ai/web@latest',
+        'https://esm.sh/@vapi-ai/web@latest'
+      ];
+
+      for (const src of cdnSources) {
+        try {
+          console.log(`Attempting to load Vapi SDK from: ${src}`);
           
-          // Set up event listeners
-          vapiInstance.on('call-start', () => {
-            console.log('Call started');
-          });
+          const script = document.createElement('script');
+          script.src = src;
+          script.type = 'text/javascript';
+          script.crossOrigin = 'anonymous';
+          
+          await new Promise((resolve, reject) => {
+            script.onload = () => {
+              if ((window as any).Vapi) {
+                console.log('Vapi SDK loaded successfully from:', src);
+                
+                const vapiInstance = new (window as any).Vapi(process.env.NEXT_PUBLIC_VAPI_PUBLIC_KEY);
+                
+                // Set up event listeners
+                vapiInstance.on('call-start', () => {
+                  console.log('Call started');
+                });
 
-          vapiInstance.on('call-end', (callData: any) => {
-            console.log('Call ended', callData);
-            setActiveCall(null);
-            // The webhook will handle incrementing call count
-          });
+                vapiInstance.on('call-end', (callData: any) => {
+                  console.log('Call ended', callData);
+                  setActiveCall(null);
+                });
 
-          vapiInstance.on('error', (error: any) => {
-            console.error('Vapi error:', error);
-            setActiveCall(null);
-            alert('Call failed: ' + error.message);
-          });
+                vapiInstance.on('error', (error: any) => {
+                  console.error('Vapi error:', error);
+                  setActiveCall(null);
+                  alert('Call failed: ' + error.message);
+                });
 
-          setVapi(vapiInstance);
-          console.log('Vapi SDK loaded successfully');
+                setVapi(vapiInstance);
+                resolve(true);
+              } else {
+                reject(new Error('Vapi not found on window'));
+              }
+            };
+            script.onerror = () => reject(new Error(`Failed to load from ${src}`));
+          });
+          
+          document.head.appendChild(script);
+          break; // Success, stop trying other sources
+          
+        } catch (error) {
+          console.log(`Failed to load from ${src}:`, error);
+          continue; // Try next source
         }
-      };
-      script.onerror = () => {
-        console.error('Failed to load Vapi SDK');
-        alert('Failed to load Vapi SDK');
-      };
-      document.head.appendChild(script);
+      }
     };
 
     if (!(window as any).Vapi) {
-      loadVapiSDK();
+      loadVapiSDK().catch(() => {
+        console.error('All CDN sources failed');
+        // Fallback: Create a mock test function
+        setVapi({
+          start: () => {
+            alert('Voice SDK not available. This would start a real voice conversation with the agent.');
+            return Promise.resolve();
+          },
+          stop: () => {
+            setActiveCall(null);
+          }
+        });
+      });
     }
   }, []);
 
