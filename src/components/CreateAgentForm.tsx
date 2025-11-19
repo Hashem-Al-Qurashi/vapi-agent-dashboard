@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { Bot, Loader2, X, Settings, Mic, Brain, Phone } from 'lucide-react';
+import { Bot, Loader2, X, Settings, Mic, Brain, Phone, Sparkles } from 'lucide-react';
+import AgentTemplates from './AgentTemplates';
 
 interface CreateAgentFormProps {
   isOpen: boolean;
@@ -49,6 +50,7 @@ export default function CreateAgentForm({ isOpen, onClose, onSubmit }: CreateAge
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Partial<AgentFormData>>({});
   const [showAdvancedSettings, setShowAdvancedSettings] = useState(false);
+  const [showTemplates, setShowTemplates] = useState(true);
 
   // Available models and voices from Vapi
   const models = [
@@ -112,6 +114,18 @@ export default function CreateAgentForm({ isOpen, onClose, onSubmit }: CreateAge
     }
   };
 
+  const handleSelectTemplate = (template: any) => {
+    setFormData(prev => ({
+      ...prev,
+      agent_name: template.name,
+      system_prompt: template.systemPrompt,
+      first_message: template.firstMessage,
+      model: template.model,
+      voice: template.voice
+    }));
+    setShowTemplates(false);
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -146,7 +160,51 @@ export default function CreateAgentForm({ isOpen, onClose, onSubmit }: CreateAge
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+        <div className="p-6">
+          {/* Templates Section */}
+          {showTemplates && (
+            <div className="mb-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-emerald-300" />
+                  <span className="font-medium text-slate-200">Start with a Template</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowTemplates(false)}
+                  className="text-sm text-slate-400 hover:text-slate-300"
+                >
+                  Skip templates
+                </button>
+              </div>
+              <AgentTemplates onSelectTemplate={handleSelectTemplate} />
+              <div className="mt-4 text-center">
+                <button
+                  type="button"
+                  onClick={() => setShowTemplates(false)}
+                  className="text-sm text-emerald-300 hover:text-emerald-200"
+                >
+                  Or create from scratch →
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Manual Form */}
+          {!showTemplates && (
+            <div className="space-y-6">
+              <div className="flex items-center justify-between border-b border-slate-700/50 pb-4">
+                <h3 className="text-lg font-semibold text-white">Custom Agent Configuration</h3>
+                <button
+                  type="button"
+                  onClick={() => setShowTemplates(true)}
+                  className="text-sm text-emerald-300 hover:text-emerald-200"
+                >
+                  ← Back to templates
+                </button>
+              </div>
+
+        <form onSubmit={handleSubmit} className="space-y-6">
           {/* Agent Name */}
           <div>
             <label className="block text-sm font-medium text-slate-200 mb-2">
@@ -461,6 +519,9 @@ export default function CreateAgentForm({ isOpen, onClose, onSubmit }: CreateAge
             </button>
           </div>
         </form>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
