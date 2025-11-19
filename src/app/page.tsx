@@ -63,18 +63,14 @@ export default function VapiDashboard() {
     
     const loadRealVapi = async () => {
       try {
-        // Use dynamic import instead of CDN
+        // Use dynamic import with proper typing
         console.log('Loading Vapi SDK via dynamic import...');
         const VapiModule = await import('@vapi-ai/web');
-        console.log('✅ Vapi module imported:', Object.keys(VapiModule));
+        console.log('✅ Vapi module imported');
         
-        // Try different export patterns
-        const Vapi = VapiModule.Vapi || VapiModule.default || (VapiModule as any);
-        console.log('✅ Vapi constructor type:', typeof Vapi);
-        
-        if (typeof Vapi !== 'function') {
-          throw new Error('Vapi constructor not found in module exports');
-        }
+        // Use the default export which should be the Vapi class
+        const Vapi = (VapiModule as any).default || VapiModule;
+        console.log('✅ Vapi constructor found');
         
         const vapiInstance = new Vapi('bd62d6e3-2281-4307-bb87-a3c59ddb52ce');
         console.log('✅ Vapi instance created with public key');
