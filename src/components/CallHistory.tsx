@@ -14,7 +14,9 @@ import {
   FileText,
   BarChart3,
   ChevronRight,
-  Circle
+  Circle,
+  ArrowLeft,
+  Home
 } from 'lucide-react';
 import { callService, subscribeToCallUpdates } from '@/lib/calls';
 import type { Call } from '@/types/calls';
@@ -190,10 +192,29 @@ export default function CallHistory({ onCallSelect }: CallHistoryProps) {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="inline-flex items-center gap-2 rounded-full bg-emerald-500/10 border border-emerald-400/40 px-4 py-3 text-emerald-100">
-          <div className="w-4 h-4 border-2 border-emerald-300 border-t-transparent rounded-full animate-spin"></div>
-          <span>Loading call history...</span>
+      <div className="max-w-7xl mx-auto p-6">
+        <div className="mb-8">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="h-8 w-32 bg-slate-800/50 rounded animate-pulse"></div>
+            <div className="h-4 w-4 bg-emerald-400/50 rounded-full animate-pulse"></div>
+          </div>
+          <div className="h-4 w-48 bg-slate-800/50 rounded animate-pulse"></div>
+        </div>
+        
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="rounded-2xl border border-slate-800/50 bg-slate-900/40 p-4">
+              <div className="h-6 w-16 bg-slate-800/50 rounded animate-pulse mb-2"></div>
+              <div className="h-4 w-12 bg-slate-800/50 rounded animate-pulse"></div>
+            </div>
+          ))}
+        </div>
+
+        <div className="flex items-center justify-center py-16">
+          <div className="inline-flex items-center gap-2 rounded-full bg-emerald-500/10 border border-emerald-400/40 px-4 py-3 text-emerald-100">
+            <div className="w-4 h-4 border-2 border-emerald-300 border-t-transparent rounded-full animate-spin"></div>
+            <span>Loading call history...</span>
+          </div>
         </div>
       </div>
     );
@@ -205,6 +226,15 @@ export default function CallHistory({ onCallSelect }: CallHistoryProps) {
       <div className="mb-8">
         <div className="flex items-center justify-between mb-6">
           <div>
+            <div className="flex items-center gap-4 mb-4">
+              <a 
+                href="/"
+                className="inline-flex items-center gap-2 px-3 py-2 bg-slate-900/60 hover:bg-slate-800/60 text-slate-400 hover:text-slate-300 rounded-lg transition-colors"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                Back to Dashboard
+              </a>
+            </div>
             <h1 className="text-3xl font-semibold text-white mb-2">Call History</h1>
             <p className="text-slate-400">Real-time call data from your voice AI agents</p>
           </div>
