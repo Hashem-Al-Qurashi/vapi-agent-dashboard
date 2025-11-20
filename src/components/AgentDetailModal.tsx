@@ -39,7 +39,14 @@ export default function AgentDetailModal({ agent, isOpen, onClose, onEdit, onDel
       const { callService } = await import('@/lib/calls');
       const calls = await callService.getByAgent(agent.id);
       
-      console.log('📞 Found', calls.length, 'real calls for agent');
+      console.log('📞 DEBUG: Raw calls data for agent', agent.id, ':', calls);
+      console.log('📞 Found', calls.length, 'calls for agent');
+      
+      // Extra check - log each call's phone number to identify fake data
+      calls.forEach((call, index) => {
+        console.log(`📞 Call ${index + 1}:`, call.phone_number, call.duration_seconds, call.started_at);
+      });
+      
       setCallHistory(calls);
     } catch (error) {
       console.error('❌ Error loading agent calls:', error);
