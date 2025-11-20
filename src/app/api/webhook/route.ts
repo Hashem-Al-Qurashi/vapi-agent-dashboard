@@ -3,14 +3,29 @@ import { createSupabaseAdmin } from '@/lib/supabase';
 import type { VapiWebhookPayload, VapiCallData } from '@/types/calls';
 
 export async function POST(request: NextRequest) {
+  console.log('🔔 WEBHOOK: ===== WEBHOOK REQUEST RECEIVED =====');
+  console.log('🔔 WEBHOOK: Timestamp:', new Date().toISOString());
+  console.log('🔔 WEBHOOK: Request method:', request.method);
+  console.log('🔔 WEBHOOK: Request URL:', request.url);
+  console.log('🔔 WEBHOOK: Request headers:', Object.fromEntries(request.headers.entries()));
+  
   try {
     const payload = await request.json();
     
-    console.log('🔔 WEBHOOK DEBUG - Full payload structure:');
-    console.log('Type:', payload.type);
-    console.log('Full payload:', JSON.stringify(payload, null, 2));
-    console.log('Call data exists:', !!payload.call);
-    console.log('Call structure:', payload.call ? Object.keys(payload.call) : 'no call object');
+    console.log('🔔 WEBHOOK: ===== PAYLOAD ANALYSIS =====');
+    console.log('🔔 WEBHOOK: Payload type:', typeof payload);
+    console.log('🔔 WEBHOOK: Payload keys:', Object.keys(payload));
+    console.log('🔔 WEBHOOK: Event type:', payload.type);
+    console.log('🔔 WEBHOOK: Call data exists:', !!payload.call);
+    
+    if (payload.call) {
+      console.log('🔔 WEBHOOK: Call object keys:', Object.keys(payload.call));
+      console.log('🔔 WEBHOOK: Call ID:', payload.call.id);
+      console.log('🔔 WEBHOOK: Call status:', payload.call.status);
+      console.log('🔔 WEBHOOK: Call structure:', JSON.stringify(payload.call, null, 2));
+    }
+    
+    console.log('🔔 WEBHOOK: Full payload (complete):', JSON.stringify(payload, null, 2));
 
     // Verify webhook secret (basic security)
     const providedSecret = request.headers.get('x-vapi-secret');

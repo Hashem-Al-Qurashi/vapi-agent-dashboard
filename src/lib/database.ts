@@ -143,24 +143,46 @@ export const agentService = {
 
   // Delete agent via API route (handles both Vapi and database)
   async delete(id: number): Promise<boolean> {
+    console.log('🗑️ FRONTEND: ===== STARTING AGENT DELETION =====');
+    console.log('🗑️ FRONTEND: Agent ID to delete:', id);
+    
     try {
-      console.log('🗑️ Deleting agent via API route:', id);
+      const apiUrl = `/api/agents/${id}`;
+      console.log('🗑️ FRONTEND: Making DELETE request to:', apiUrl);
       
-      const response = await fetch(`/api/agents/${id}`, {
+      const response = await fetch(apiUrl, {
         method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
       });
 
+      console.log('🗑️ FRONTEND: Response received');
+      console.log('🗑️ FRONTEND: - Status:', response.status);
+      console.log('🗑️ FRONTEND: - Status Text:', response.statusText);
+      console.log('🗑️ FRONTEND: - Headers:', Object.fromEntries(response.headers.entries()));
+
       const result = await response.json();
+      console.log('🗑️ FRONTEND: - Response Body:', result);
       
       if (!response.ok) {
-        console.error('🗑️ Delete API error:', result);
+        console.error('🗑️ FRONTEND: ❌ DELETE API FAILED');
+        console.error('🗑️ FRONTEND: - Status:', response.status);
+        console.error('🗑️ FRONTEND: - Error:', result);
         throw new Error(result.error || 'Failed to delete agent');
       }
 
-      console.log('✅ Agent deleted successfully:', result.message);
+      console.log('✅ FRONTEND: DELETE API SUCCESS!');
+      console.log('✅ FRONTEND: Result:', result.message);
+      console.log('✅ FRONTEND: Deleted from database:', result.database_deletion_successful);
+      console.log('✅ FRONTEND: Vapi deletion attempted:', result.vapi_deletion_attempted);
+      
       return true;
     } catch (error) {
-      console.error('🗑️ Error deleting agent:', error);
+      console.error('🗑️ FRONTEND: ❌ DELETE OPERATION FAILED');
+      console.error('🗑️ FRONTEND: - Error type:', typeof error);
+      console.error('🗑️ FRONTEND: - Error message:', error instanceof Error ? error.message : error);
+      console.error('🗑️ FRONTEND: - Error stack:', error instanceof Error ? error.stack : 'No stack');
       throw error;
     }
   },
