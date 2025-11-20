@@ -18,12 +18,36 @@ interface AgentDetailModalProps {
 
 export default function AgentDetailModal({ agent, isOpen, onClose, onEdit, onDelete }: AgentDetailModalProps) {
   const [activeTab, setActiveTab] = useState('overview');
-  const [callHistory] = useState([
-    // Mock call history data - would come from Vapi API in real implementation
-    { id: 1, duration: '2:34', timestamp: '2 hours ago', status: 'completed', caller: '+1-555-0123' },
-    { id: 2, duration: '1:45', timestamp: '5 hours ago', status: 'completed', caller: '+1-555-0456' },
-    { id: 3, duration: '3:12', timestamp: '1 day ago', status: 'completed', caller: '+1-555-0789' },
-  ]);
+  const [callHistory, setCallHistory] = useState<any[]>([]);
+  const [loadingCalls, setLoadingCalls] = useState(false);
+
+  // Load REAL call history for this specific agent
+  useEffect(() => {
+    if (isOpen && agent && activeTab === 'calls') {
+      loadAgentCalls();
+    }
+  }, [isOpen, agent, activeTab]);
+
+  const loadAgentCalls = async () => {
+    if (!agent?.id) return;
+    
+    try {
+      setLoadingCalls(true);
+      console.log('📞 Loading real calls for agent:', agent.id);
+      
+      // Import call service dynamically to avoid SSR issues
+      const { callService } = await import('@/lib/calls');
+      const calls = await callService.getByAgent(agent.id);
+      
+      console.log('📞 Found', calls.length, 'real calls for agent');
+      setCallHistory(calls);
+    } catch (error) {
+      console.error('❌ Error loading agent calls:', error);
+      setCallHistory([]);
+    } finally {
+      setLoadingCalls(false);
+    }
+  };
 
   if (!isOpen || !agent) return null;
 
@@ -231,68 +255,96 @@ export default function AgentDetailModal({ agent, isOpen, onClose, onEdit, onDel
                 </div>
               </div>
 
-              {/* Performance Metrics */}
+              {/* REAL Performance Metrics */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="rounded-2xl bg-slate-900/80 border border-slate-800/80 p-4">
                   <div className="flex items-center gap-2 mb-2">
                     <Activity className="w-4 h-4 text-emerald-300" />
-                    <span className="font-medium text-slate-200">Response Time</span>
+                    <span className="font-medium text-slate-200">Total Calls</span>
                   </div>
-                  <p className="text-lg font-bold text-slate-100">1.2s</p>
-                  <p className="text-xs text-slate-400">Average response latency</p>
+                  <p className="text-lg font-bold text-slate-100">{agent.call_count}</p>
+                  <p className="text-xs text-slate-400">Real calls made</p>
                 </div>
 
                 <div className="rounded-2xl bg-slate-900/80 border border-slate-800/80 p-4">
                   <div className="flex items-center gap-2 mb-2">
                     <TrendingUp className="w-4 h-4 text-emerald-300" />
-                    <span className="font-medium text-slate-200">Satisfaction</span>
+                    <span className="font-medium text-slate-200">Status</span>
                   </div>
-                  <p className="text-lg font-bold text-slate-100">4.8/5</p>
-                  <p className="text-xs text-slate-400">User satisfaction score</p>
+                  <p className="text-lg font-bold text-slate-100">
+                    {agent.call_count > 0 ? 'Active' : 'No Calls'}
+                  </p>
+                  <p className="text-xs text-slate-400">
+                    {agent.call_count > 0 ? 'Receiving calls' : 'Waiting for first call'}
+                  </p>
                 </div>
               </div>
             </div>
           )}
 
-          {/* Call History Tab */}
+          {/* Call History Tab - REAL DATA ONLY */}
           {activeTab === 'calls' && (
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-white">Recent Call History</h3>
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-white">Call History</h3>
+                <a 
+                  href="/calls" 
+                  className="text-sm text-emerald-300 hover:text-emerald-200 transition-colors"
+                >
+                  View All Calls →
+                </a>
+              </div>
+              
+              {loadingCalls ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="inline-flex items-center gap-2 rounded-full bg-emerald-500/10 border border-emerald-400/40 px-4 py-3 text-emerald-100">
+                    <div className="w-4 h-4 border-2 border-emerald-300 border-t-transparent rounded-full animate-spin"></div>
+                    <span>Loading real call history...</span>
+                  </div>
+                </div>
+              ) : null}
               
               <div className="space-y-3">
-                {callHistory.map((call) => (
-                  <div key={call.id} className="flex items-start gap-3 text-sm">
-                    {/* EXACT REPLICA of chat message structure */}
-                    <div className="mt-1 flex h-8 w-8 items-center justify-center rounded-full bg-slate-900 border border-emerald-400/30">
-                      <Phone className="w-4 h-4 text-emerald-300" />
-                    </div>
-                    <div className="flex-1">
-                      <div className="inline-flex items-center gap-2 rounded-full bg-emerald-500/10 border border-emerald-400/40 px-3 py-1 mb-2 text-xs text-emerald-100">
-                        <span>Call {call.id}</span>
-                        <span className="h-1 w-1 rounded-full bg-emerald-300/60"></span>
-                        <span>{call.timestamp}</span>
+                {callHistory.length > 0 ? (
+                  callHistory.slice(0, 5).map((call) => (
+                    <div key={call.id} className="flex items-start gap-3 text-sm">
+                      <div className="mt-1 flex h-8 w-8 items-center justify-center rounded-full bg-slate-900 border border-emerald-400/30">
+                        <Phone className="w-4 h-4 text-emerald-300" />
                       </div>
-                      <div className="rounded-2xl bg-slate-900/80 border border-slate-800/80 px-4 py-3">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-slate-200">Duration: <span className="text-emerald-200 font-medium">{call.duration}</span></span>
-                          <span className="text-slate-400">From: {call.caller}</span>
+                      <div className="flex-1">
+                        <div className="inline-flex items-center gap-2 rounded-full bg-emerald-500/10 border border-emerald-400/40 px-3 py-1 mb-2 text-xs text-emerald-100">
+                          <span>Call {call.id}</span>
+                          <span className="h-1 w-1 rounded-full bg-emerald-300/60"></span>
+                          <span>{new Date(call.started_at).toLocaleString()}</span>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            call.status === 'completed' 
-                              ? 'bg-emerald-500/20 text-emerald-200 border border-emerald-400/40' 
-                              : 'bg-amber-500/20 text-amber-200 border border-amber-400/40'
-                          }`}>
-                            {call.status}
-                          </span>
-                          <button className="text-xs text-emerald-300 hover:text-emerald-200 transition">
-                            View transcript
-                          </button>
+                        <div className="rounded-2xl bg-slate-900/80 border border-slate-800/80 px-4 py-3">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-slate-200">
+                              Duration: <span className="text-emerald-200 font-medium">
+                                {call.duration_seconds ? `${Math.floor(call.duration_seconds / 60)}:${(call.duration_seconds % 60).toString().padStart(2, '0')}` : 'N/A'}
+                              </span>
+                            </span>
+                            <span className="text-slate-400">From: {call.phone_number || 'Web Call'}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                              call.status === 'ended' 
+                                ? 'bg-emerald-500/20 text-emerald-200 border border-emerald-400/40' 
+                                : 'bg-red-500/20 text-red-200 border border-red-400/40'
+                            }`}>
+                              {call.status}
+                            </span>
+                            {call.transcript && (
+                              <span className="text-xs text-slate-400">
+                                "{call.transcript.substring(0, 50)}..."
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  ))
+                ) : null}
               </div>
 
               {callHistory.length === 0 && (
