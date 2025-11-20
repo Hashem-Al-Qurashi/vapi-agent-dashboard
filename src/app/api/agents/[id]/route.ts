@@ -24,6 +24,17 @@ export async function DELETE(
     console.log('🗑️ API: VAPI_PRIVATE_KEY exists:', !!VAPI_PRIVATE_KEY);
     console.log('🗑️ API: VAPI_PRIVATE_KEY length:', VAPI_PRIVATE_KEY?.length);
     console.log('🗑️ API: VAPI_PRIVATE_KEY first 10 chars:', VAPI_PRIVATE_KEY?.substring(0, 10));
+    console.log('🗑️ API: VAPI_PRIVATE_KEY last 10 chars:', VAPI_PRIVATE_KEY?.substring(VAPI_PRIVATE_KEY.length - 10));
+    
+    // The error said "using private key instead of public key" - let's check if this is the issue
+    console.log('🗑️ API: Key validation:');
+    console.log('🗑️ API: - Looks like private key (bc2ac...):', VAPI_PRIVATE_KEY?.startsWith('bc2ac'));
+    console.log('🗑️ API: - Key format check:', VAPI_PRIVATE_KEY?.includes('-'));
+    
+    // For assistant deletion, some APIs might need private key, others public - let's try both
+    const VAPI_PUBLIC_KEY = process.env.VAPI_PUBLIC_KEY!;
+    console.log('🗑️ API: VAPI_PUBLIC_KEY exists:', !!VAPI_PUBLIC_KEY);
+    console.log('🗑️ API: VAPI_PUBLIC_KEY first 10 chars:', VAPI_PUBLIC_KEY?.substring(0, 10));
     
     // Use admin client for server-side operations
     const supabaseAdmin = createSupabaseAdmin();

@@ -68,16 +68,23 @@ export async function POST(request: NextRequest) {
       }),
       
       // Configure webhook for call events
-      serverUrl: `${process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://vapi-agent-dashboard-jg8ab2cf4-hashem-al-qurashis-projects.vercel.app'}/api/webhook`,
+      serverUrl: `https://${process.env.VERCEL_URL || 'vapi-agent-dashboard-jg8ab2cf4-hashem-al-qurashis-projects.vercel.app'}/api/webhook`,
       serverUrlSecret: "vapi_webhook_secret_2024"
     };
 
     console.log('🔧 API: ===== CREATING VAPI ASSISTANT =====');
-    console.log('🔧 API: Payload to send:', JSON.stringify(vapiPayload, null, 2));
+    console.log('🔧 API: Environment check:');
+    console.log('🔧 API: - VERCEL_URL:', process.env.VERCEL_URL);
+    console.log('🔧 API: - Final webhook URL:', vapiPayload.serverUrl);
+    console.log('🔧 API: - Webhook secret:', vapiPayload.serverUrlSecret);
+    
+    console.log('🔧 API: Configuration summary:');
     console.log('🔧 API: - Recording enabled:', vapiPayload.artifactPlan.recordingEnabled);
     console.log('🔧 API: - Transcript enabled:', vapiPayload.artifactPlan.transcriptPlan.enabled);
     console.log('🔧 API: - Analysis enabled:', !!vapiPayload.analysisPlan);
-    console.log('🔧 API: - Webhook URL:', vapiPayload.serverUrl);
+    console.log('🔧 API: - Webhook configured:', !!vapiPayload.serverUrl);
+    
+    console.log('🔧 API: Full payload to send:', JSON.stringify(vapiPayload, null, 2));
     
     const vapiResponse = await fetch(`${VAPI_BASE_URL}/assistant`, {
       method: 'POST',
