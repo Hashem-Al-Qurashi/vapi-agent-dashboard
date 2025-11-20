@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
     const formData = await request.json();
     console.log('🔧 API: Form data received:', formData);
     
-    // 1. Create Vapi assistant with advanced configuration
+    // 1. Create Vapi assistant with advanced configuration + RECORDING/TRANSCRIPTS
     const vapiPayload = {
       name: formData.agent_name,
       model: {
@@ -29,6 +29,35 @@ export async function POST(request: NextRequest) {
         voiceId: formData.voice
       },
       firstMessage: formData.first_message,
+      
+      // CRITICAL: Enable recording and transcripts (per Vapi docs)
+      artifactPlan: {
+        recordingEnabled: true,
+        recordingFormat: "mp3",
+        loggingEnabled: true,
+        transcriptPlan: {
+          enabled: true,
+          assistantName: "Assistant",
+          userName: "Customer"
+        }
+      },
+      
+      // Analysis plan for call insights
+      analysisPlan: {
+        summaryPrompt: "Summarize this call in 2-3 sentences highlighting key topics and outcomes.",
+        structuredDataPrompt: "Extract key information from this call.",
+        structuredDataSchema: {
+          type: "object",
+          properties: {
+            intent: { type: "string", description: "Primary reason for the call" },
+            sentiment: { type: "string", enum: ["positive", "negative", "neutral"] },
+            satisfaction: { type: "number", minimum: 1, maximum: 10 }
+          }
+        },
+        successEvaluationPrompt: "Rate how well this call achieved its objectives.",
+        successEvaluationRubric: "NumericScale"
+      },
+      
       // Valid Vapi configurations only
       ...(formData.maxDurationSeconds && { maxDurationSeconds: formData.maxDurationSeconds }),
       ...(formData.backgroundSound && formData.backgroundSound !== 'none' && { 
@@ -37,12 +66,19 @@ export async function POST(request: NextRequest) {
       ...(formData.endCallPhrases && formData.endCallPhrases.length > 0 && { 
         endCallPhrases: formData.endCallPhrases 
       }),
+      
       // Configure webhook for call events
-      serverUrl: `${process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://vapi-agent-dashboard-4kwlolir1-hashem-al-qurashis-projects.vercel.app'}/api/webhook`,
+      serverUrl: `${process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://vapi-agent-dashboard-jg8ab2cf4-hashem-al-qurashis-projects.vercel.app'}/api/webhook`,
       serverUrlSecret: "vapi_webhook_secret_2024"
     };
 
-    console.log('🔧 API: Sending request to Vapi:', vapiPayload);
+    console.log('🔧 API: ===== CREATING VAPI ASSISTANT =====');
+    console.log('🔧 API: Payload to send:', JSON.stringify(vapiPayload, null, 2));
+    console.log('🔧 API: - Recording enabled:', vapiPayload.artifactPlan.recordingEnabled);
+    console.log('🔧 API: - Transcript enabled:', vapiPayload.artifactPlan.transcriptPlan.enabled);
+    console.log('🔧 API: - Analysis enabled:', !!vapiPayload.analysisPlan);
+    console.log('🔧 API: - Webhook URL:', vapiPayload.serverUrl);
+    
     const vapiResponse = await fetch(`${VAPI_BASE_URL}/assistant`, {
       method: 'POST',
       headers: {
@@ -52,19 +88,30 @@ export async function POST(request: NextRequest) {
       body: JSON.stringify(vapiPayload),
     });
 
-    console.log('🔧 API: Vapi response status:', vapiResponse.status);
+    console.log('🔧 API: ===== VAPI RESPONSE RECEIVED =====');
+    console.log('🔧 API: Response status:', vapiResponse.status);
+    console.log('🔧 API: Response headers:', Object.fromEntries(vapiResponse.headers.entries()));
+    
+    const responseText = await vapiResponse.text();
+    console.log('🔧 API: Response body:', responseText);
     
     if (!vapiResponse.ok) {
-      const error = await vapiResponse.text();
-      console.error('🔧 API: Vapi API Error:', error);
+      console.error('🔧 API: ❌ VAPI ASSISTANT CREATION FAILED');
+      console.error('🔧 API: Status:', vapiResponse.status);
+      console.error('🔧 API: Error:', responseText);
+      
       return NextResponse.json(
-        { error: `Failed to create Vapi assistant: ${error}` },
+        { error: `Failed to create Vapi assistant: ${responseText}` },
         { status: vapiResponse.status }
       );
     }
 
-    const vapiAssistant = await vapiResponse.json();
-    console.log('🔧 API: Vapi assistant created:', vapiAssistant.id);
+    const vapiAssistant = JSON.parse(responseText);
+    console.log('🔧 API: ✅ VAPI ASSISTANT CREATED SUCCESSFULLY!');
+    console.log('🔧 API: Assistant ID:', vapiAssistant.id);
+    console.log('🔧 API: Assistant name:', vapiAssistant.name);
+    console.log('🔧 API: Recording enabled:', vapiAssistant.artifactPlan?.recordingEnabled);
+    console.log('🔧 API: Transcript enabled:', vapiAssistant.artifactPlan?.transcriptPlan?.enabled);
     
     // 2. Save to Supabase with Vapi assistant ID
     console.log('🔧 API: Saving to Supabase...');
