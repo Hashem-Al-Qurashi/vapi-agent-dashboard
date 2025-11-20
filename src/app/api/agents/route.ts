@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
       }),
       
       // Configure webhook for call events
-      serverUrl: `https://${process.env.VERCEL_URL || 'vapi-agent-dashboard-hshb7djtx-hashem-al-qurashis-projects.vercel.app'}/api/webhook`,
+      serverUrl: `https://${process.env.VERCEL_URL || 'vapi-agent-dashboard-hashem-al-qurashis-projects.vercel.app'}/api/webhook`,
       serverUrlSecret: "vapi_webhook_secret_2024"
     };
 
