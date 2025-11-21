@@ -108,13 +108,23 @@ export async function POST(request: NextRequest) {
         
         console.log(`📥 IMPORT: Storing call ${vapiCall.id} for agent ${agent.agent_name}`);
         
-        // Upsert call data
+        // Check if call already exists to avoid duplicates
+        const { data: existingCall } = await supabaseAdmin
+          .from('calls')
+          .select('id')
+          .eq('vapi_call_id', vapiCall.id)
+          .single();
+        
+        if (existingCall) {
+          console.log(`📥 IMPORT: ⏭️ Call ${vapiCall.id} already exists, skipping`);
+          importResults.calls_skipped++;
+          continue;
+        }
+        
+        // Insert new call data (don't upsert to avoid duplicates)
         const { data, error } = await supabaseAdmin
           .from('calls')
-          .upsert(callRecord, { 
-            onConflict: 'vapi_call_id',
-            ignoreDuplicates: false 
-          })
+          .insert(callRecord)
           .select()
           .single();
         
@@ -125,11 +135,11 @@ export async function POST(request: NextRequest) {
             error: error.message
           });
         } else {
-          console.log(`📥 IMPORT: ✅ Successfully stored call ${vapiCall.id}`);
+          console.log(`📥 IMPORT: ✅ Successfully stored new call ${vapiCall.id}`);
           importResults.calls_imported++;
           importResults.imported_call_ids.push(vapiCall.id);
           
-          // Increment call count
+          // Only increment call count for NEW calls
           const { error: countError } = await supabaseAdmin.rpc('increment_call_count', {
             assistant_id: vapiCall.assistantId
           });
