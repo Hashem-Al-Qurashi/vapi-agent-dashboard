@@ -22,10 +22,21 @@ export default function VapiDashboard() {
   const [vapi, setVapi] = useState<any>(null);
   const [activeCall, setActiveCall] = useState<string | null>(null);
 
-  // Load agents from Supabase
+  // Load agents from Supabase and auto-import calls
   useEffect(() => {
-    async function loadAgents() {
+    async function loadAgentsAndImportCalls() {
       try {
+        // Auto-import calls from Vapi on page load
+        try {
+          console.log('🔄 Auto-importing calls from Vapi...');
+          const importResponse = await fetch('/api/import-vapi-calls', { method: 'POST' });
+          if (importResponse.ok) {
+            console.log('✅ Auto-import successful');
+          }
+        } catch (importError) {
+          console.log('⚠️ Auto-import failed, continuing with cached data');
+        }
+        
         const data = await agentService.getAll();
         setAgents(data);
       } catch (err) {
@@ -35,7 +46,7 @@ export default function VapiDashboard() {
       }
     }
 
-    loadAgents();
+    loadAgentsAndImportCalls();
 
     // Set up real-time subscription (disabled for production testing)
     // const subscription = subscribeToAgents((updatedAgents) => {
