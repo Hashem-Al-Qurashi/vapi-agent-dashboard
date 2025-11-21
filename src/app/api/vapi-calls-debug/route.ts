@@ -50,9 +50,9 @@ export async function GET(request: NextRequest) {
       webhook_analysis: {
         calls_with_webhooks: 0,
         calls_without_webhooks: 0,
-        webhook_urls_found: new Set<string>(),
-        call_statuses: new Set<string>(),
-        call_types: new Set<string>()
+        webhook_urls_found: [] as string[],
+        call_statuses: [] as string[],
+        call_types: [] as string[]
       }
     };
     
@@ -84,19 +84,21 @@ export async function GET(request: NextRequest) {
       callsArray.forEach(call => {
         if (call.assistant?.serverUrl || call.serverUrl) {
           analysis.webhook_analysis.calls_with_webhooks++;
-          analysis.webhook_analysis.webhook_urls_found.add(call.assistant?.serverUrl || call.serverUrl);
+          const webhookUrl = call.assistant?.serverUrl || call.serverUrl;
+          if (webhookUrl && !analysis.webhook_analysis.webhook_urls_found.includes(webhookUrl)) {
+            analysis.webhook_analysis.webhook_urls_found.push(webhookUrl);
+          }
         } else {
           analysis.webhook_analysis.calls_without_webhooks++;
         }
         
-        if (call.status) analysis.webhook_analysis.call_statuses.add(call.status);
-        if (call.type) analysis.webhook_analysis.call_types.add(call.type);
+        if (call.status && !analysis.webhook_analysis.call_statuses.includes(call.status)) {
+          analysis.webhook_analysis.call_statuses.push(call.status);
+        }
+        if (call.type && !analysis.webhook_analysis.call_types.includes(call.type)) {
+          analysis.webhook_analysis.call_types.push(call.type);
+        }
       });
-      
-      // Convert sets to arrays for JSON serialization
-      analysis.webhook_analysis.webhook_urls_found = Array.from(analysis.webhook_analysis.webhook_urls_found);
-      analysis.webhook_analysis.call_statuses = Array.from(analysis.webhook_analysis.call_statuses);
-      analysis.webhook_analysis.call_types = Array.from(analysis.webhook_analysis.call_types);
     }
     
     return NextResponse.json({
