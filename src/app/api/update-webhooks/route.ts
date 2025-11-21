@@ -7,7 +7,7 @@ const VAPI_PRIVATE_KEY = process.env.VAPI_PRIVATE_KEY!;
 export async function GET(request: NextRequest) {
   return NextResponse.json({
     message: 'Webhook update endpoint - use POST to update all agent webhooks',
-    webhook_url: `${process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://vapi-agent-dashboard-hashem-al-qurashis-projects.vercel.app'}/api/webhook`,
+    webhook_url: 'https://vapi-agent-dashboard-hashem-al-qurashis-projects.vercel.app/api/webhook',
     instructions: 'Send POST request to this endpoint to update all agents'
   });
 }
@@ -20,7 +20,8 @@ export async function POST(request: NextRequest) {
     const agents = await agentService.getAll();
     console.log(`Found ${agents.length} agents to update`);
     
-    const webhookUrl = `${process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://vapi-agent-dashboard-hashem-al-qurashis-projects.vercel.app'}/api/webhook`;
+    // Always use main production domain for webhook stability
+    const webhookUrl = 'https://vapi-agent-dashboard-hashem-al-qurashis-projects.vercel.app/api/webhook';
     console.log('Webhook URL:', webhookUrl);
     
     const updateResults = [];
