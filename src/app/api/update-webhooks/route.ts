@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
     const agents = await agentService.getAll();
     console.log(`Found ${agents.length} agents to update`);
     
-    const webhookUrl = `${process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://vapi-agent-dashboard-4kwlolir1-hashem-al-qurashis-projects.vercel.app'}/api/webhook`;
+    const webhookUrl = `${process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://vapi-agent-dashboard-hashem-al-qurashis-projects.vercel.app'}/api/webhook`;
     console.log('Webhook URL:', webhookUrl);
     
     const updateResults = [];
