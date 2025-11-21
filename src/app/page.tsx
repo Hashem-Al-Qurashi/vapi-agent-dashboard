@@ -348,6 +348,32 @@ export default function VapiDashboard() {
               >
                 Update Webhooks
               </button>
+              <button
+                onClick={async () => {
+                  try {
+                    setLoading(true);
+                    const response = await fetch('/api/import-vapi-calls', { method: 'POST' });
+                    const result = await response.json();
+                    console.log('Import result:', result);
+                    if (result.success) {
+                      alert(`Successfully imported ${result.results.calls_imported} calls from Vapi!`);
+                      // Reload agents to update call counts
+                      const data = await agentService.getAll();
+                      setAgents(data);
+                    } else {
+                      alert('Import completed but no calls were found to import');
+                    }
+                  } catch (error) {
+                    console.error('Error importing calls:', error);
+                    alert('Failed to import calls from Vapi');
+                  } finally {
+                    setLoading(false);
+                  }
+                }}
+                className="text-xs sm:text-sm text-slate-300 hover:text-white transition"
+              >
+                Import Calls
+              </button>
               <button 
                 onClick={() => setShowCreateForm(true)}
                 className="relative inline-flex items-center justify-center gap-2 overflow-hidden transition-all duration-300 hover:ring-emerald-400/70 hover:shadow-[0_0_0_1px_rgba(52,211,153,0.4),0_30px_80px_rgba(16,185,129,0.3)] group ring-emerald-500/40 ring-1 text-xs sm:text-sm font-medium text-slate-950 tracking-tight bg-emerald-400 rounded-full py-2.5 px-4 chat-pulse"
