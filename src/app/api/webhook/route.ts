@@ -15,17 +15,24 @@ export async function POST(request: NextRequest) {
     console.log('🔔 WEBHOOK: ===== PAYLOAD ANALYSIS =====');
     console.log('🔔 WEBHOOK: Payload type:', typeof payload);
     console.log('🔔 WEBHOOK: Payload keys:', Object.keys(payload));
-    console.log('🔔 WEBHOOK: Event type:', payload.type);
-    console.log('🔔 WEBHOOK: Call data exists:', !!payload.call);
+    console.log('🔔 WEBHOOK: Full payload structure:', JSON.stringify(payload, null, 2));
     
-    if (payload.call) {
-      console.log('🔔 WEBHOOK: Call object keys:', Object.keys(payload.call));
-      console.log('🔔 WEBHOOK: Call ID:', payload.call.id);
-      console.log('🔔 WEBHOOK: Call status:', payload.call.status);
-      console.log('🔔 WEBHOOK: Call structure:', JSON.stringify(payload.call, null, 2));
+    // According to Vapi docs, all data is in the 'message' object
+    const message = payload.message;
+    if (!message) {
+      console.log('❌ WEBHOOK: No message object in payload - not a valid Vapi webhook');
+      return NextResponse.json({ error: 'Invalid Vapi webhook format' }, { status: 400 });
     }
     
-    console.log('🔔 WEBHOOK: Full payload (complete):', JSON.stringify(payload, null, 2));
+    console.log('🔔 WEBHOOK: Message type:', message.type);
+    console.log('🔔 WEBHOOK: Message keys:', Object.keys(message));
+    console.log('🔔 WEBHOOK: Call data exists:', !!message.call);
+    
+    if (message.call) {
+      console.log('🔔 WEBHOOK: Call object keys:', Object.keys(message.call));
+      console.log('🔔 WEBHOOK: Call ID:', message.call.id);
+      console.log('🔔 WEBHOOK: Call status:', message.call.status);
+    }
 
     // Verify webhook secret (TEMPORARILY DISABLED FOR DEBUGGING)
     const providedSecret = request.headers.get('x-vapi-secret');
@@ -42,18 +49,49 @@ export async function POST(request: NextRequest) {
       // return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get assistant ID from actual Vapi payload structure (like original webhook)
-    const assistantId = payload.call?.assistant?.id || payload.assistant?.id;
-    console.log('Assistant ID found:', assistantId);
+    // Get assistant ID from Vapi payload structure (inside message object)
+    let assistantId = null;
+    
+    // According to Vapi docs, try these locations in the message object
+    if (message.call?.assistant?.id) {
+      assistantId = message.call.assistant.id;
+      console.log('🔍 WEBHOOK: Assistant ID found in message.call.assistant.id:', assistantId);
+    } else if (message.assistant?.id) {
+      assistantId = message.assistant.id;
+      console.log('🔍 WEBHOOK: Assistant ID found in message.assistant.id:', assistantId);
+    } else if (message.call?.assistantId) {
+      assistantId = message.call.assistantId;
+      console.log('🔍 WEBHOOK: Assistant ID found in message.call.assistantId:', assistantId);
+    } else if (message.assistantId) {
+      assistantId = message.assistantId;
+      console.log('🔍 WEBHOOK: Assistant ID found in message.assistantId:', assistantId);
+    }
+    
+    console.log('🔍 WEBHOOK: Final assistant ID:', assistantId);
     
     if (!assistantId) {
-      console.log('⚠️ No assistant ID found in payload');
-      return NextResponse.json({ error: 'Assistant ID required' }, { status: 400 });
+      console.log('⚠️ WEBHOOK: No assistant ID found in message - dumping structure:');
+      console.log('⚠️ WEBHOOK: Message keys:', Object.keys(message));
+      if (message.call) {
+        console.log('⚠️ WEBHOOK: message.call keys:', Object.keys(message.call));
+        if (message.call.assistant) {
+          console.log('⚠️ WEBHOOK: message.call.assistant keys:', Object.keys(message.call.assistant));
+        }
+      }
+      if (message.assistant) {
+        console.log('⚠️ WEBHOOK: message.assistant keys:', Object.keys(message.assistant));
+      }
+      return NextResponse.json({ error: 'Assistant ID required', payload_debug: { 
+        message_keys: Object.keys(message),
+        call_keys: message.call ? Object.keys(message.call) : null,
+        assistant_keys: message.assistant ? Object.keys(message.assistant) : null,
+        message_type: message.type
+      }}, { status: 400 });
     }
 
-    // If it's a call-end event, let's process it  
-    if (payload.type === 'call-end') {
-      console.log('🔔 WEBHOOK: ===== PROCESSING CALL-END EVENT =====');
+    // Handle different message types according to Vapi docs
+    if (message.type === 'end-of-call-report') {
+      console.log('🔔 WEBHOOK: ===== PROCESSING END-OF-CALL-REPORT =====');
       console.log('🔔 WEBHOOK: Assistant ID:', assistantId);
       
       const supabaseAdmin = createSupabaseAdmin();
@@ -78,61 +116,32 @@ export async function POST(request: NextRequest) {
       console.log('🔔 WEBHOOK: ✅ Found agent:', agent.agent_name, 'ID:', agent.id);
 
       // Get call ID from payload
-      const callId = payload.call?.id;
+      const callId = message.call?.id;
       console.log('🔔 WEBHOOK: Call ID from webhook payload:', callId);
       
-      // Check if call data is in webhook payload (new structure per Vapi docs)
-      console.log('🔔 WEBHOOK: ===== ANALYZING CALL DATA IN PAYLOAD =====');
+      // Check if artifact data exists (this contains transcript, recording, etc.)
+      console.log('🔔 WEBHOOK: ===== ANALYZING ARTIFACT DATA =====');
       
-      if (payload.call) {
-        console.log('🔔 WEBHOOK: Call object exists in payload');
-        console.log('🔔 WEBHOOK: Call object keys:', Object.keys(payload.call));
+      if (message.artifact) {
+        console.log('🔔 WEBHOOK: ✅ Artifact data found in message!');
+        console.log('🔔 WEBHOOK: Artifact keys:', Object.keys(message.artifact));
+        console.log('🔔 WEBHOOK: Recording exists:', !!message.artifact.recording);
+        console.log('🔔 WEBHOOK: Transcript exists:', !!message.artifact.transcript);
+        console.log('🔔 WEBHOOK: Messages exists:', !!message.artifact.messages);
         
-        // Check for artifact data (per Vapi docs)
-        if (payload.call.artifact) {
-          console.log('🔔 WEBHOOK: ✅ Artifact data found in payload!');
-          console.log('🔔 WEBHOOK: Artifact keys:', Object.keys(payload.call.artifact));
-          console.log('🔔 WEBHOOK: Recording URL:', payload.call.artifact.recording);
-          console.log('🔔 WEBHOOK: Transcript exists:', !!payload.call.artifact.transcript);
-          console.log('🔔 WEBHOOK: Messages exists:', !!payload.call.artifact.messages);
-          
-          // Store call data directly from webhook payload
-          await storeRealCallDataFromPayload(payload.call, agent.id, supabaseAdmin);
-        } else {
-          console.log('🔔 WEBHOOK: No artifact in payload, fetching from Vapi API...');
-          
-          if (callId) {
-            // Fetch full call data from Vapi API as fallback
-            try {
-              console.log('🔔 WEBHOOK: 📡 Fetching call data from Vapi API...');
-              const callResponse = await fetch(`https://api.vapi.ai/call/${callId}`, {
-                headers: {
-                  'Authorization': `Bearer ${process.env.VAPI_PRIVATE_KEY}`,
-                },
-              });
-
-              console.log('🔔 WEBHOOK: Vapi API response status:', callResponse.status);
-
-              if (callResponse.ok) {
-                const fullCallData = await callResponse.json();
-                console.log('🔔 WEBHOOK: ✅ Full call data from API:', fullCallData.id);
-                console.log('🔔 WEBHOOK: API data keys:', Object.keys(fullCallData));
-                
-                await storeRealCallDataFromAPI(fullCallData, agent.id, supabaseAdmin);
-              } else {
-                const errorText = await callResponse.text();
-                console.error('🔔 WEBHOOK: ❌ Failed to fetch from Vapi API:', errorText);
-              }
-            } catch (error) {
-              console.error('🔔 WEBHOOK: ❌ API fetch error:', error);
-            }
-          }
-        }
+        // Store call data from end-of-call-report
+        await storeCallDataFromEndOfCallReport(message, agent.id, supabaseAdmin);
       } else {
-        console.log('🔔 WEBHOOK: ⚠️ No call object in payload');
+        console.log('🔔 WEBHOOK: ⚠️ No artifact data in end-of-call-report');
+        
+        // Fallback: try to get data from call object
+        if (message.call) {
+          console.log('🔔 WEBHOOK: Trying to extract data from call object...');
+          await storeBasicCallData(message.call, agent.id, supabaseAdmin);
+        }
       }
 
-      // Increment call count (keep the working functionality)
+      // Increment call count
       console.log('🔔 WEBHOOK: Incrementing call count...');
       const { error: countError } = await supabaseAdmin.rpc('increment_call_count', {
         assistant_id: assistantId
@@ -144,23 +153,33 @@ export async function POST(request: NextRequest) {
         console.log('🔔 WEBHOOK: ✅ Call count incremented for assistant:', assistantId);
       }
       
-      console.log('🔔 WEBHOOK: ===== CALL-END PROCESSING COMPLETE =====');
+      console.log('🔔 WEBHOOK: ===== END-OF-CALL-REPORT PROCESSING COMPLETE =====');
       return NextResponse.json({ 
-        message: 'Call processed successfully',
+        message: 'End-of-call-report processed successfully',
         assistant_id: assistantId,
         agent_id: agent.id,
         call_id: callId,
-        type: payload.type,
+        type: message.type,
         webhook_processed: true
       });
     }
 
+    // Handle status updates for call progress
+    if (message.type === 'status-update') {
+      console.log('🔔 WEBHOOK: Status update:', message.status);
+      return NextResponse.json({ 
+        message: 'Status update received',
+        status: message.status,
+        type: message.type
+      });
+    }
+
     // For other event types, just log them for now
-    console.log('ℹ️ Received event type:', payload.type, '- logging for analysis');
+    console.log('ℹ️ Received event type:', message.type, '- logging for analysis');
     
     return NextResponse.json({ 
       message: 'Event logged for analysis',
-      type: payload.type
+      type: message.type
     });
 
   } catch (error) {
@@ -170,7 +189,139 @@ export async function POST(request: NextRequest) {
 }
 
 
-// Store call data directly from webhook payload (when artifact exists)
+// Store call data from end-of-call-report (new Vapi webhook format)
+async function storeCallDataFromEndOfCallReport(message: any, agentId: number, supabaseAdmin: any) {
+  console.log('💾 WEBHOOK: ===== STORING CALL DATA FROM END-OF-CALL-REPORT =====');
+  console.log('💾 WEBHOOK: Call ID:', message.call?.id);
+  console.log('💾 WEBHOOK: Agent ID:', agentId);
+  
+  const callData = message.call;
+  const artifact = message.artifact;
+  
+  // Extract transcript from artifact (per Vapi docs format)
+  let transcript = '';
+  if (artifact?.transcript) {
+    console.log('💾 WEBHOOK: Processing transcript string...');
+    transcript = artifact.transcript;
+    console.log('💾 WEBHOOK: Transcript length:', transcript.length);
+  } else if (artifact?.messages && Array.isArray(artifact.messages)) {
+    console.log('💾 WEBHOOK: Processing messages array...');
+    transcript = artifact.messages
+      .map((msg: any) => `${msg.role}: ${msg.message}`)
+      .join('\n');
+    console.log('💾 WEBHOOK: Formatted transcript from messages length:', transcript.length);
+  }
+
+  const callRecord = {
+    vapi_call_id: callData?.id,
+    vapi_assistant_id: callData?.assistant?.id || message.assistantId,
+    agent_id: agentId,
+    
+    // Real timing data
+    started_at: callData?.startedAt || callData?.createdAt || new Date().toISOString(),
+    ended_at: callData?.endedAt || new Date().toISOString(),
+    duration_seconds: callData?.duration,
+    
+    // Real status
+    status: callData?.status || 'ended',
+    end_reason: message.endedReason || callData?.endedReason,
+    
+    // Real caller data
+    phone_number: callData?.customer?.number,
+    
+    // Real conversation data from artifact
+    transcript: transcript || null,
+    summary: callData?.analysis?.summary || artifact?.summary,
+    recording_url: artifact?.recording?.url || artifact?.recording,
+    
+    // Real analytics
+    sentiment: extractSentiment(callData?.analysis),
+    intent: extractIntent(callData?.analysis),
+    satisfaction_score: extractSatisfaction(callData?.analysis),
+    
+    // Real cost
+    cost_usd: callData?.cost,
+    
+    // Store full raw data
+    vapi_raw_data: message
+  };
+
+  console.log('💾 WEBHOOK: Call record to store:', callRecord);
+  console.log('💾 WEBHOOK: - Has transcript:', !!callRecord.transcript);
+  console.log('💾 WEBHOOK: - Has recording:', !!callRecord.recording_url);
+  console.log('💾 WEBHOOK: - Has summary:', !!callRecord.summary);
+
+  // Store in database
+  const { data, error } = await supabaseAdmin
+    .from('calls')
+    .upsert(callRecord, { 
+      onConflict: 'vapi_call_id',
+      ignoreDuplicates: false 
+    })
+    .select()
+    .single();
+
+  if (error) {
+    console.error('💾 WEBHOOK: ❌ Database storage error:', error);
+    throw error;
+  }
+
+  console.log('💾 WEBHOOK: ✅ Call stored successfully!');
+  console.log('💾 WEBHOOK: Database ID:', data.id);
+  console.log('💾 WEBHOOK: ===== CALL DATA STORAGE COMPLETE =====');
+  return data;
+}
+
+// Store basic call data when no artifact is available
+async function storeBasicCallData(callData: any, agentId: number, supabaseAdmin: any) {
+  console.log('💾 WEBHOOK: ===== STORING BASIC CALL DATA =====');
+  console.log('💾 WEBHOOK: Call ID:', callData.id);
+  
+  const callRecord = {
+    vapi_call_id: callData.id,
+    vapi_assistant_id: callData.assistant?.id || callData.assistantId,
+    agent_id: agentId,
+    
+    started_at: callData.startedAt || callData.createdAt || new Date().toISOString(),
+    ended_at: callData.endedAt || new Date().toISOString(),
+    duration_seconds: callData.duration,
+    
+    status: callData.status || 'ended',
+    end_reason: callData.endedReason,
+    
+    phone_number: callData.customer?.number,
+    
+    // Basic data without transcript
+    transcript: null,
+    summary: null,
+    recording_url: null,
+    
+    cost_usd: callData.cost,
+    
+    vapi_raw_data: callData
+  };
+
+  console.log('💾 WEBHOOK: Basic call record to store:', callRecord);
+
+  const { data, error } = await supabaseAdmin
+    .from('calls')
+    .upsert(callRecord, { 
+      onConflict: 'vapi_call_id',
+      ignoreDuplicates: false 
+    })
+    .select()
+    .single();
+
+  if (error) {
+    console.error('💾 WEBHOOK: ❌ Basic storage error:', error);
+    throw error;
+  }
+
+  console.log('💾 WEBHOOK: ✅ Basic call stored successfully:', data.id);
+  return data;
+}
+
+// Store call data directly from webhook payload (when artifact exists) - LEGACY
 async function storeRealCallDataFromPayload(callData: any, agentId: number, supabaseAdmin: any) {
   console.log('💾 WEBHOOK: ===== STORING CALL DATA FROM PAYLOAD =====');
   console.log('💾 WEBHOOK: Call ID:', callData.id);
@@ -194,7 +345,7 @@ async function storeRealCallDataFromPayload(callData: any, agentId: number, supa
 
   const callRecord = {
     vapi_call_id: callData.id,
-    vapi_assistant_id: callData.assistantId,
+    vapi_assistant_id: callData.assistant?.id || callData.assistantId,
     agent_id: agentId,
     
     // Real timing data
@@ -259,7 +410,7 @@ async function storeRealCallDataFromAPI(vapiCallData: any, agentId: number, supa
 
   const callRecord = {
     vapi_call_id: vapiCallData.id,
-    vapi_assistant_id: vapiCallData.assistantId,
+    vapi_assistant_id: vapiCallData.assistant?.id || vapiCallData.assistantId,
     agent_id: agentId,
     
     // Real timing data from Vapi

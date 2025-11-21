@@ -4,6 +4,14 @@ import { agentService } from '@/lib/database';
 const VAPI_BASE_URL = process.env.VAPI_BASE_URL || 'https://api.vapi.ai';
 const VAPI_PRIVATE_KEY = process.env.VAPI_PRIVATE_KEY!;
 
+export async function GET(request: NextRequest) {
+  return NextResponse.json({
+    message: 'Webhook update endpoint - use POST to update all agent webhooks',
+    webhook_url: `${process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://vapi-agent-dashboard-hashem-al-qurashis-projects.vercel.app'}/api/webhook`,
+    instructions: 'Send POST request to this endpoint to update all agents'
+  });
+}
+
 export async function POST(request: NextRequest) {
   try {
     console.log('Starting webhook URL update for all agents...');
