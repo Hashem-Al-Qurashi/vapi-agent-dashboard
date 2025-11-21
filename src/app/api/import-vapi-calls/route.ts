@@ -34,8 +34,8 @@ export async function POST(request: NextRequest) {
       calls_imported: 0,
       calls_updated: 0,
       calls_skipped: 0,
-      errors: [],
-      imported_call_ids: []
+      errors: [] as Array<{ call_id: string; error: string }>,
+      imported_call_ids: [] as string[]
     };
     
     const callsArray = Array.isArray(calls) ? calls : (calls.data || []);
@@ -142,7 +142,7 @@ export async function POST(request: NextRequest) {
       } catch (error) {
         console.error(`📥 IMPORT: Exception processing call ${vapiCall.id}:`, error);
         importResults.errors.push({
-          call_id: vapiCall.id,
+          call_id: vapiCall.id || 'unknown',
           error: error instanceof Error ? error.message : 'Unknown error'
         });
       }
