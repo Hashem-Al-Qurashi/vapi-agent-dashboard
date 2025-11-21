@@ -31,13 +31,28 @@ export async function GET(request: NextRequest) {
     const analysis = {
       total_calls: Array.isArray(calls) ? calls.length : (calls.data ? calls.data.length : 0),
       calls_data: Array.isArray(calls) ? calls : (calls.data || calls),
-      recent_calls: [],
+      recent_calls: [] as Array<{
+        id: string;
+        assistantId: string;
+        status: string;
+        type: string;
+        startedAt: string;
+        endedAt: string;
+        duration: number;
+        phoneNumber: string;
+        hasTranscript: boolean;
+        hasRecording: boolean;
+        hasAnalysis: boolean;
+        webhookUrl: string;
+        createdAt: string;
+        updatedAt: string;
+      }>,
       webhook_analysis: {
         calls_with_webhooks: 0,
         calls_without_webhooks: 0,
-        webhook_urls_found: new Set(),
-        call_statuses: new Set(),
-        call_types: new Set()
+        webhook_urls_found: new Set<string>(),
+        call_statuses: new Set<string>(),
+        call_types: new Set<string>()
       }
     };
     
